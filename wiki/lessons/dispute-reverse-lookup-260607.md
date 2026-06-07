@@ -1,0 +1,104 @@
+---
+type: lesson
+title: 분쟁 종목 역추적 + 공시 재검토 — 진짜 경영권 분쟁 추출 (KOSPI+KOSDAQ)
+date: 2026-06-07
+related:
+  - wiki/lessons/contest-signals-500-260605.md
+  - wiki/tools/proxy_contest.md
+related_audits: [architecture/audits/data/260607_dispute_reclassified]
+---
+
+# 분쟁 종목 역추적 + 공시 재검토 회고
+
+## 배경
+
+500사 시총순 전수조사(260605)는 KOSPI/KOSDAQ 시총 상위만 봤다. 분쟁은 시총과 무관하게 중소형주에서 더 잦으므로, **DART 공시를 역추적**해 시총 밖 분쟁 종목까지 수집하고, 공시 내용으로 진짜 분쟁을 추렸다.
+
+## 방법 — 역추적
+
+`corp_cls`(Y=KOSPI / K=KOSDAQ) + 분쟁 공시유형(B 소송 / I 위임장·공개매수)을 분기별로 검색해 종목을 역으로 모은다. (corp_code 없는 검색은 DART 3개월 제한 → 분기 순회)
+
+```
+KOSPI(Y) 분쟁 종목: 41
+KOSDAQ(K) 분쟁 종목: 99 (5% 대량보유 D는 일상적이라 제외 — 소송+위임장만)
+합계: 140 + 영풍 = 142
+```
+
+5% 대량보유(D)는 796종목이나 나와 noise. 소송(B)+위임장(I)으로 좁히니 진짜 분쟁만 남았다.
+
+## 효율 — 역추적 >> 시총순
+
+| universe | 방법 | has_contest_signal |
+|---|---|---:|
+| KOSPI200+KOSDAQ300 | 시총순 | 14.1% |
+| KOSDAQ 분쟁 99 | 역추적 | **71.6%** |
+
+→ 역추적이 5배 효율. 시총순은 절반이 깨끗한 회사, 역추적은 71.6%가 진짜 분쟁.
+
+## 재검토 — 공시 내용으로 진짜 분쟁 추출
+
+142종목의 소송 공시명을 재분류:
+- **management**: "경영권분쟁소송" / "경영권변경" — 진짜 경영권 분쟁
+- **commercial**: "일정금액이상의청구" — 일상 손배/상거래 소송 (분쟁 아님)
+- **tender/proxy**: 공개매수 / 의결권대리행사권유 — 정면 표대결
+
+### 결과
+
+| 구분 | 수 |
+|---|---:|
+| 진짜 경영권 분쟁 | 70 (50%) |
+| 단순 상거래 소송만 (제외) | 70 (50%) |
+
+→ **소송 키워드 hit의 절반이 일상 상거래 소송.** 아시아나항공(상거래 11)/한국종합기술(7)/교보·삼성·NH증권 등이 "소송 키워드"만 걸렸을 뿐 분쟁 아님.
+
+### 진짜 분쟁 70 (KOSPI 24 / KOSDAQ 46)
+
+상위: 씨씨에스(92) / 고려아연(37) / 대양금속(30) / DKME(28) / 셀피글로벌(28) / 아이로보틱스(21). 유명 케이스(영풍/한미사이언스/태광산업/콜마홀딩스/KT&G/남양유업) 모두 포착.
+
+### 정면 표대결은 단 2건
+```
+씨씨에스   위임장 1
+JTC      공개매수 1
+```
+→ 소송전(68)이 압도적. **한국 경영권 분쟁의 주 무기 = 소송**, 공개매수/위임장 표대결은 드묾.
+
+## 핵심 발견 → 코드 반영
+
+### proxy_contest 소송 분류 부족
+기존 `_litigation_items`는 소송 키워드 + 정정 dedup만 했고 **경영권/상거래 구분이 없어** 아시아나항공 같은 회사가 "소송 N건"으로 분쟁처럼 보였다.
+
+→ `_litigation_dispute_kind` 추가 (commit 4192631):
+- dispute_kind: management / commercial / unspecified
+- has_contest_signal에서 commercial 제외 (false positive 제거)
+- md에 소송 성격 표기
+
+검증: 고려아연 소송 34 = 경영권 15 / 미상 19 (contest True 유지) / 아시아나 소송 2 = 상거래 2 (소송은 분쟁서 제외).
+
+## 시장별 분쟁 양상 대비
+
+| | KOSPI 대형 | KOSDAQ 중소형 |
+|---|---|---|
+| 주 신호 | 지분 매집 (고려아연 영풍/MBK) | 소송전 + 위임장 |
+| 분쟁 밀도 (역추적) | 24종목 | 46종목 |
+| noise 패턴 | 외국기관 차익실현 | 저축은행 담보 처분 |
+
+→ KOSDAQ이 분쟁 종목 수·밀도 모두 높다. 소액주주 행동주의 + 경영권분쟁소송이 활발.
+
+## 교훈
+
+### 1. 역추적이 시총순보다 분쟁 발굴에 우월
+시총 상위만 보면 중소형주 분쟁을 놓친다. 공시 역추적이 5배 효율.
+
+### 2. "소송 키워드"는 절반이 noise
+경영권분쟁소송과 일상 상거래 소송을 공시명으로 구분해야 한다. dedup(정정 제외)만으론 부족.
+
+### 3. 정면 표대결은 드물고 소송전이 주류
+한국 경영권 분쟁은 공개매수/위임장보다 경영권분쟁소송이 압도적. proxy_contest가 소송 dedup+분류를 정확히 해야 하는 이유.
+
+## archive
+
+- `scripts/collect_kosdaq_dispute_corps.py` (corp_cls 역추적 수집)
+- `scripts/reclassify_dispute_corps.py` (공시 재검토 분류)
+- `wiki/architecture/audits/data/260607_kospi_dispute_universe.csv` (41)
+- `wiki/architecture/audits/data/260607_kosdaq_dispute_universe.csv` (99)
+- `wiki/architecture/audits/data/260607_dispute_reclassified.json` (140 재분류)
