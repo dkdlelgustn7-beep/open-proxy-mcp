@@ -95,6 +95,41 @@ JTC      공개매수 1
 ### 3. 정면 표대결은 드물고 소송전이 주류
 한국 경영권 분쟁은 공개매수/위임장보다 경영권분쟁소송이 압도적. proxy_contest가 소송 dedup+분류를 정확히 해야 하는 이유.
 
+## 소송 성격 분류 정밀화 — 4단계 (260607 후속)
+
+처음 분류는 "경영권분쟁" 단어만 봐서 미상이 42%였다. 142종목 전수 + 본문 분석으로 4단계 cascade를 구축했다.
+
+### 단계 1 — 공시명 사건명 키워드 (호출 0)
+판결 공시("소송등의판결ㆍ결정")는 "경영권분쟁" 단어 없이 괄호에 사건명만 적는다. 아이로보틱스/셀피글로벌 raw 분석으로 전형적 경영권 가처분 키워드를 추가:
+- 직무집행정지 / 직무대행 / 총회개최금지 / 의안상정 / 주주총회결의 / 주주명부·회계장부(열람가처분) / 검사인선임
+- **신주발행 분쟁** (경영권 방어/공격 핵심): 신주발행 / 유상증자발행금지 / 주식발행 / 상장금지 / 전환사채발행금지
+- 공백 정규화 (`name.replace(" ","")`): "경영권 분쟁" 띄어쓰기도 매칭
+
+효과: 미상 42% → 35% (전수 142종목 분류가능 85%).
+
+### 단계 2 — 회사단위 추정 (호출 0)
+판결 공시가 사건명 없이 "소송등의판결ㆍ결정"만 있으면, 같은 회사의 제기 성격으로 추정 (경영권 제기만 있으면 → 경영권 추정). 단정 X (`dispute_kind_inferred` 태그). 경영권/상거래 둘 다 있으면 mixed로 보류.
+
+### 단계 3 — 본문 사건명 파싱 (litigation scope 한정)
+공시명에 사건명이 없어도 **본문 "1. 사건의 명칭"에 정형으로 존재** (고려아연 "신주발행금지 가처분", 원고에 영풍/MBK까지). 미상 row만 document를 열어 사건명 추출 → 재분류.
+
+- `_extract_case_name`: 정규식으로 "사건의 명칭" 필드 추출
+- 병렬 gather: 순차 25건 2436ms → 병렬 7ms (cache hit) / cache miss는 max 1건분
+- 파싱 정규식 0-4ms (무비용)
+- default off (summary 가볍게), litigation scope만 on
+- 📄 마커로 본문 파싱 출처 표시
+
+효과 (고려아연 litigation): 미상 25 → 본문 파싱 11건 재분류 → 미상 14.
+
+### 단계 4 — LLM 위임
+본문에도 사건명 없는 진짜 미상(회사별 양식 차이)은 공시명 빈도(report_name_freq) 정규화 텍스트로 LLM 위임. 자동 단정 X.
+
+### 성능 — time tracker 결론
+병목은 100% document_fetch(DART 문서 조회). 순차 → 병렬 gather로 N건이 1건 시간으로 수렴. cache 따뜻하면 거의 0. 파싱은 무비용.
+
+### 설계 원칙
+간단 신호(공시명/빈도)는 코드, 깊은 판단은 raw 정규화 텍스트로 LLM 위임. scope별 비용 차등 (summary 가볍게 / litigation 정밀).
+
 ## archive
 
 - `scripts/collect_kosdaq_dispute_corps.py` (corp_cls 역추적 수집)
@@ -102,3 +137,9 @@ JTC      공개매수 1
 - `wiki/architecture/audits/data/260607_kospi_dispute_universe.csv` (41)
 - `wiki/architecture/audits/data/260607_kosdaq_dispute_universe.csv` (99)
 - `wiki/architecture/audits/data/260607_dispute_reclassified.json` (140 재분류)
+
+## 코드 반영 (commit)
+
+- 소송 경영권/상거래 분류 (4192631)
+- 미상 회사단위 추정 + 공시명 빈도 LLM 위임 (da1ce0f)
+- 본문 사건명 파싱 + 키워드 보강 (신주발행/띄어쓰기) — litigation scope 한정, 병렬 (d5daf7d)
