@@ -42,6 +42,24 @@ related: [공시유형코드체계, page-cut-detail-code-260609]
 - **맥쿼리인프라 `issued=0`(펀드형)** — 인프라펀드(집합투자기구)는 주식총수 미공시(013).
   조용히 사라지던 100% 섹션에 "발행주식총수 미확보 — 집합투자기구/미공시" **안내 추가**.
 
+## 성능 — throttle 정합 + scope별 콜 절감
+
+시간 병목을 측정(timings_ms)하니 summary 746ms 중 `annual_report_apis`(270) +
+`block_holders`(270)가 지배. gather 병렬화를 시도했으나 **거의 안 줄었다(28ms)**.
+
+- **원인 = `client._throttle_api`의 호출당 최소 간격이 직렬화.** 모든 DART 호출이
+  `_api_rate_lock`(Lock)을 통과하며 `_MIN_INTERVAL_API`만큼 간격을 둔다 → gather로 동시
+  발사해도 throttle이 하나씩 내보내 병렬화 무효. (→ 병렬화 롤백)
+- 🔴 **`_MIN_INTERVAL_API = 0.1`이 과보수.** 0.1초 = 분당 600회 상한인데, 정작 cap으로
+  둔 `_API_RATE_LIMIT_PER_MINUTE = 910` window에 **도달조차 불가**(600 < 910). 즉 의도한
+  방어선이 무력. **0.066초**(=60/910)로 낮춰 분당 상한을 window cap과 정합시킴 →
+  단일 흐름 1.5배, 안전마진 9%(<1000)는 그대로. interval은 **burst 평활화**용이고
+  (window는 평균만 막아 순간 burst를 못 막음) race는 Lock이 직렬화로 보장하므로 간격과 무관.
+  summary 746→360ms(warm).
+- **scope별 불필요 콜 스킵** — `stock_total`·`treasury`는 summary/control_map만,
+  `majorstock`은 major_holders 빼고 필요. 조건부 호출로 major_holders 4→1콜,
+  blocks 4→2, changes 4→3. `major`는 top_holder/related_total 공유 로직이라 유지(회귀 회피).
+
 ## Takeaway
 
 - **명부(hyslrSttus, 본인+특관)와 5%보고(majorstock, 보고자 합산)는 집계 기준이 다르다.**
@@ -53,6 +71,9 @@ related: [공시유형코드체계, page-cut-detail-code-260609]
   가정하면 issued=0. 보통주 우선 → 합계 fallback이 안전.
 - **정식명 prefix 단일 후보는 자동선택하라.** 완전일치만 고집하면 "금호석유"를 못 찾는다.
   단 약칭(다수 후보)은 모호하게 좁히지 말고 명확화 유도.
+- **rate-limit throttle 환경에선 병렬화보다 콜 수 절감이 답이다.** 호출당 최소 간격이
+  gather를 직렬화하므로(병렬 28ms뿐) 시간은 콜 수에 비례. 또 `_MIN_INTERVAL_API`가
+  window cap보다 빡빡하면 cap이 무력화되니, **간격은 window cap과 정합**시켜야(0.066=60/910).
 - **엣지 스크리닝은 일부러 까다로운 표본으로.** 우선주 대형주·소유분산·인프라펀드·합병사·
   분쟁사 33개를 돌려 정합(합 100%)·issued=0·기타음수 flag로 버그를 잡았다.
 
