@@ -1,83 +1,71 @@
 ---
 type: lesson
-title: proxy_advise 2단계(perf) 조기 발사 — director gate를 1차 완료 전에 판단
-context: 2026-06-10 proxy_advise 6.4초 병목 분석 → 100개 전수조사 → 방법 C 구현
+title: proxy_advise 2단계 조기 발사 — 모델상 이득이 실측 노이즈에 묻혀 롤백
+context: 2026-06-10 proxy_advise 병목 분석 → 방법 C 시도 → 복잡/흔한 케이스 실측 반증 → 롤백
 date_learned: 2026-06-10
 related: [ownership-summary-integrity-260610]
 ---
 
-# proxy_advise 2단계 perf 조기 발사 (방법 C)
+# proxy_advise 2단계 조기 발사 시도 — 모델의 함정과 롤백
+
+## 결론 먼저
+
+**방법 C(2단계 perf 조기 발사)는 component-timing 모델상 이득(중앙 1.7초)이었으나,
+실제 wall-clock 실측에서 이득이 입증되지 않고(오히려 약한 손해 경향) 측정 노이즈에 묻혀 롤백했다.**
+결과 정합성(회귀)은 0이었지만 시간 이득이라는 전제 자체가 무너졌다.
 
 ## Context
 
-proxy_advise(의결권 자문 복합툴)는 하위 8개 서비스를 조합한다. 측정 결과 총 6446ms 중
-**1차(upstreams 8개, 3163ms)와 2차(perf 3개, 3048ms)가 순차**여서 거의 시간이 합산됐다.
-2차 perf(dividend + treasury 10년 + financial yearly)는 사내이사 재직 성과 매트릭스용으로,
-1차 `director_eval`의 `inside_renewed`(사내이사 renewed) 후보가 있을 때만 실행되는 조건부다.
+proxy_advise(의결권 자문 복합툴)는 하위 8개 서비스를 조합한다. 총 6446ms 중 1차(8개, 3163ms)와
+2차(perf 3개, 3048ms)가 순차였다. 2차 perf(dividend+treasury 10년+financial)는 사내이사
+재직 성과용으로 `director_eval`의 `inside_renewed` gate가 있을 때만 실행되는 조건부다.
 
-## 뭐에서 뭐로
+## 시도한 것 (방법 C)
 
-**Before** — 1차 gather(director_eval 포함 8개) **전부 완료 후** gate 판단 → 2차 perf gather:
-```
-[1차 8개 gather] ──3163ms── [gate] [2차 perf gather] ──3048ms──  = 6.4초
-```
+director_eval만 1차에서 분리해 먼저 await → gate 판단 → perf를 1차 완료 전 조기 발사
+(나머지 1차와 겹치게). perf는 company_query만 필요(1차 결과 무관)하고 director가 일찍
+끝나므로(중앙 596ms) perf가 나머지 1차에 숨는다는 논리.
 
-**After (방법 C)** — director_eval을 1차에서 분리해 **먼저 await** → gate 판단 →
-perf를 **1차 완료 전에 조기 발사**(나머지 1차 7개와 병렬로 겹침):
-```
-[director_task] ─596ms─ [gate] ┐
-[others 7개 gather] ──────────── ┴ [perf 발사] ──── 나머지 1차와 perf 겹침 = 3.8초
-```
+- **모델**: 현재 `L1+P` → 방법C `max(L1, D+P)`. D≤L1이라 회귀 수학적 불가능, 100개에서 중앙 1.7초↓.
+- **구현 + 정합성**: before/after `agenda_decisions`/`candidates_evaluations` **bit-identical**
+  (현대차·삼성). 결과는 완전 동일 — 타이밍만 변경.
 
-## 왜 가능한가
+## 무엇이 반증했나 (실측)
 
-- **perf는 1차 결과와 무관** — 입력이 `company_query`뿐(dividend/treasury/financial은 회사 단위).
-  gate(`inside_renewed`)만 director_eval 결과를 필요로 한다.
-- **director_eval이 1차에서 일찍 끝난다** — KOSPI 100 측정 중앙 596ms (1차 전체의 ~1/4 시점).
-  그래서 perf를 director 완료 직후 발사하면 perf 3초가 나머지 1차(아직 2.4초 진행 중)에 숨는다.
+100개의 "이득"은 `timings_ms`의 component 시간(L1, P)으로 계산한 **모델 예측**이었다. 실제
+wall-clock으로 before/after를 측정하니:
 
-## 구조
+- **복잡 케이스(D 큰 renewed) 20개**: 손해 16/20, 이득 중앙 **-356ms**. 하나금융 -2477, SK -2189.
+- **흔한 케이스(D 작은 renewed) 15개**: 손해 12/15, 이득 중앙 **-349ms**, 평균 -433ms.
+- **측정 노이즈**(같은 코드 2회 차이): |중앙| **426ms**, 범위 [-1893, +195].
 
-```python
-director_task = asyncio.create_task(_safe_throttled(director_eval, ...))   # 먼저 발사
-others_task   = asyncio.gather(meeting×4, ownership, gov, fin)             # 나머지 1차 7개
-director_eval = await director_task                                        # director만 먼저 회수
-inside_renewed = [ev for ev in evals if 사내 and renewed]                   # gate 판단
-perf_task = asyncio.gather(dividend, treasury, financial) if inside_renewed else None  # 조기 발사
-meeting, ..., fin = await others_task                                      # 나머지 1차 회수
-...                                                                        # 1차 의존 로직
-if perf_task: perf_div, perf_treas, perf_fin = await perf_task             # perf 회수
-```
+→ **노이즈(426ms)가 방법C 효과(-350ms)보다 크다.** HD건설기계 손해 -1951ms 중 노이즈가
+-1893ms, LS 손해 -1265 중 노이즈 -1187 — 손해의 대부분이 측정 변동이었다. 즉 효과가 노이즈에
+완전히 묻혔고, 그럼에도 양쪽 평균이 일관되게 음수라 **약한 손해 경향**(Semaphore 경합 가설 부합).
 
-## Trade-off 분석 (3개 방법 비교)
+## 왜 모델이 틀렸나
 
-| 방법 | renewed 회사 | renewed 없는 회사 | 헛콜 | 회귀 |
-|---|---|---|---|---|
-| A 낙관적(perf 무조건 병렬) | 이득 | 시간 동일 | 🔴 treasury(10년) 헛콜 | - |
-| B director 먼저 순차 | 이득 | 🔴 +0.6초 손해 | 0 | 발생 |
-| **C 조기 발사(채택)** | **이득** | **동일** | **0** | **0** |
+모델 `max(L1, D+P)`는 component 시간을 깔끔히 합산/겹침으로 환산했지만, 실제 wall-clock은:
 
-방법 C 시간 모델: 현재 `L1+P` → 방법C `max(L1, D+P)`. D ≤ L1이므로 **항상 ≤ L1+P (회귀 수학적 불가능)**.
-renewed 없는 회사는 perf 미발사 → 현재와 동일(손해 0). A의 헛콜은 gate 정확 판단으로 차단.
-
-## 검증 (100개 전수조사 + 회귀)
-
-- **renewed 비율 64/100** — perf 실행(이득 가능) 회사. 나머지 36%는 perf 미발사(손해 0).
-- **회귀 케이스 0/100** — 모델 `gain = (L1+P) - max(L1,D+P) ≥ 0` 실측 확인 (`min gain = 701ms`).
-- **이득 중앙 1687ms, 최대 3291ms** (현대차 8924→5633 모델 / 실측 7408→4773).
-- **결과 동일성** — git stash로 before/after 비교: 현대차·삼성전자 `agenda_decisions`/
-  `candidates_evaluations` **bit-identical**(decisions·성과 매트릭스 무손실). 타이밍만 변경.
-- 측정 데이터: `wiki/architecture/audits/data/proxy_advise_stage2_parallel_260610.json`,
-  스크립트: `scripts/proxy_advise_stage2_parallel_analysis.py`.
+- **`_UPSTREAM_SEM = Semaphore(3)`** — 동시성 3 제한. perf를 일찍 발사해도 무거운 1차 작업
+  (ownership·meeting·treasury 10년)과 슬롯을 경쟁 → "공짜 겹침"이 안 됨.
+- **throttle(0.066초/콜)** — 모든 DART 호출 직렬 간격. 콜 수가 시간을 지배. 발사 순서를 바꿔도
+  총 콜 수가 같으면 총 시간이 크게 안 줄고, 무거운 작업이 한 풀에 몰리면 오히려 악화.
+- **DART 응답 변동** — wall-clock이 ±400~1900ms 출렁여 component 모델과 괴리.
 
 ## Takeaway
 
-- **조건부 2단계는 gate 입력만 먼저 확보하면 조기 발사로 합산을 겹침으로 바꾼다.** 2단계가
-  1단계 "결과 전체"가 아니라 "일부(gate)"에만 의존하면, 그 일부를 먼저 await해 2단계를 당긴다.
-- **trade-off를 막는 핵심은 gate 정확성.** 낙관적 병렬(A)의 헛콜은 gate를 건너뛰어 생긴다.
-  gate를 정확히(director 결과로) 판단하면 헛콜 0 + 손해 0을 동시에 얻는다.
-- **수학적 회귀 불가능 + 100개 실측 회귀 0 + before/after bit-identical** 3중 검증으로 안전 확인.
+- **component-timing 모델 ≠ wall-clock.** `timings_ms` 단계별 합으로 계산한 이득은 Semaphore·
+  throttle·네트워크 경합을 무시한다. 모델 기반 최적화는 **반드시 wall-clock 실측으로 검증**하라.
+- **효과를 재기 전에 측정 노이즈부터 baseline으로 재라.** 같은 코드 2회 차이가 426ms인데
+  효과가 350ms면 그 효과는 측정 불가다. 노이즈 < 효과일 때만 유의미.
+- **모델상 "수학적으로 이득 보장"도 실측에서 증발할 수 있다.** 추상화(component 합산)가 실제
+  실행 모델(동시성 제한·직렬 throttle)을 안 담으면 결론이 뒤집힌다.
+- **사용자의 "복잡 케이스 전수조사" 요구가 모델의 함정을 잡았다.** 흔한 케이스 모델 이득만 봤다면
+  잘못 배포했을 것. 엣지 케이스 실측 + 노이즈 baseline이 안전망이었다.
+- **회귀(결과 정합)와 성능(시간)은 별개로 검증하라.** 회귀 0이어도 시간 이득이 없으면 복잡도만
+  늘어 롤백이 맞다.
 
 ## Related
 
-- [[ownership-summary-integrity-260610]] (같은 세션 ownership 성능/정합성 작업)
+- [[ownership-summary-integrity-260610]] (같은 세션 — 거기선 throttle interval 조정이 전역 실효)
