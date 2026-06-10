@@ -108,7 +108,7 @@
             "red_0": "명백 위반 신호 (자기거래 + 사외이사 추천 일치, 총수일가 후보)"
           },
           "data_source": [
-            "related_party_transaction",
+            "corporate_deals",
             "ownership_structure",
             "own_shareholder_relations"
           ],
@@ -676,7 +676,7 @@
             "red_0": "지배주주 우호 + 회사 추천 + 분리선출 미적용"
           },
           "data_source": [
-            "related_party_transaction",
+            "corporate_deals",
             "candidate_recommendation_source"
           ],
           "law_basis": "상법 §382의3 (2025)"
