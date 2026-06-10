@@ -7,6 +7,9 @@ tools_audited: [advise_vote_before_meeting, recap_vote_after_meeting, director_e
 result: 정기/임시/edge case sanity 통과, 18→17 tool regression 0
 ---
 
+> **archived 2026-06-11**: [[260510_proxy_advise_audit_통합정리]]에 흡수
+
+
 # action tool 재편 sanity audit
 
 ## 환경
