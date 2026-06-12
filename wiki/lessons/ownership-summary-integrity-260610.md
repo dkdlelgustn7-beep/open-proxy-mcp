@@ -60,6 +60,24 @@ related: [공시유형코드체계, page-cut-detail-code-260609]
   `majorstock`은 major_holders 빼고 필요. 조건부 호출로 major_holders 4→1콜,
   blocks 4→2, changes 4→3. `major`는 top_holder/related_total 공유 로직이라 유지(회귀 회피).
 
+## 후속: 450사 시장 전수 audit (2026-06-12)
+
+33사 스크리닝이 표본 부족하다는 판단으로 baseline 450사(KOSPI 300 + KOSDAQ 150) 전수
+실행 (11.9분, 1,890콜 — 배치 30 + 20s 페이싱). 409 clean / 41 flag → 3패턴:
+
+- 🔴 **DART 원본 단위 오염 (실버그 2사)** — LS: 명부 주식수 ×1,000(구자은 '1,170,304,000'주
+  + 지분율 3.69%, 발행총수 31.7M의 37배), LS에코에너지: 발행총수 ×1,000,000('30,624,879,000,000').
+  회사가 천주 단위로 잘못 기재한 원본 오류. **지분율(비율) 필드는 오염 안 되므로 anchor**:
+  `r=(주식수/발행총수×100)/공시지분율`이 10^±3·10^±6이면 해당 축 교정(`_sanitize_share_units`).
+  r≈1.3(분모차이)은 불변 — 거짓 교정 없음.
+- 🟡 **분모 차이 (8사)** — 공시 지분율은 보통+우선 총주식 기준, 100% 분해는 보통주 기준
+  (솔루스 41.18% vs 53.31%). 버그 아님 — 2%p 초과 괴리 시 분모 안내 warning 추가.
+- ⚪ **BLOCK_PCT=0 (29사)** — 5% 보유자의 전량처분 최종 보고(0%). 합법적·정보성(Capital
+  Group의 SK하이닉스 exit 등) — 유지.
+
+flag 13사 재검증: 교정/정상 4 + 분모경고 8 + 잔여 0. changes spot 30사: I004 22 + 5%변동 27 정상.
+audit raw: `260612_ownership_summary_market_audit.json`, 스크립트: `scripts/ownership_summary_market_audit.py`.
+
 ## Takeaway
 
 - **명부(hyslrSttus, 본인+특관)와 5%보고(majorstock, 보고자 합산)는 집계 기준이 다르다.**
