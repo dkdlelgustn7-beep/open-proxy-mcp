@@ -71,6 +71,29 @@ clean** — 검사량(checked) 카운트로 적발. 침묵은 성공이 아니�
 최신연도 전용인데 전 연도와 매칭 → 비율 0.25-9배 = 배당 증감). 비율이 10^3/10^6이 아니면
 단위 사고가 아니다 — flag의 *크기 패턴*으로 원인을 구분하라.
 
+## 2차: seam·render·corp_gov·production 4축 (2026-06-13)
+
+proxy_result 제거(17→16, 핵심을 results tool이 3콜 vs 32콜로 대체·cross-match 미구현·실사용 부재)
+후 남은 축 전수:
+
+- **seam audit (proxy_advise 8사)** — composite 출력 vs 직접 호출 교차. ownership/financial
+  이음새 정상, **고려아연 crash 발견**: 보수 파서가 headcount를 '7' 문자열로 내려
+  `limit // headcount` TypeError → `_comp_amount`에서 일괄 숫자 강제 (근원 fix).
+- **render smoke (16툴 × 31케이스)** — FastMCP `call_tool` 경로로 build+render 전체.
+  **솔루엠 render crash 발견**: perf matrix `roe.get('avg', 0)`인데 avg가 None '값'으로
+  존재해 default 무력 → `None:.1f` TypeError → `or 0` 강제. 교정 후 31/31.
+  payload audit이 못 보는 render 레이어 버그를 정확히 잡음 — **두 crash 모두 분쟁사·중형사**.
+- **corp_gov 값 정확도 (30사)** — 15지표 × 30사 = 450값 전부 O/X 형식, 기록된 기준값과
+  정확 일치 (삼성 13/15=86.7%·X항목 집중투표제/배당예측, KT&G·포스코 15/15).
+- **production MCP smoke (fly.io)** — 정식 MCP 클라이언트로 initialize→list→call.
+  ownership 재설계(100% 분해·5% 실세) production 반영 확인. 부수 발견:
+  **OPENDART_API_KEY 1번 키가 DART에서 무효(에러 100)** — 로컬은 KEY_2 fallback으로
+  은폐돼 있었음. per-request 키로 1번을 쓰면 모든 DART 호출 실패 → 키 교체/정리 필요.
+
+메타: corp_gov 1차 sweep도 **틀린 키(compliance) 가짜 clean**이었다 — 첫 행 출력으로 적발,
+'current' 키로 재실행. 이번 세션에서 가짜 clean 3회 — **sweep 작성 시 첫 케이스의 실제
+키/행을 반드시 출력하고 양성 검사량을 보고하는 것을 표준으로**.
+
 ## Takeaway
 
 - **baseline 없는 툴은 죽어도 모른다.** proxy_result는 핵심 기능이 0건을 반환하면서도
