@@ -183,9 +183,16 @@ async def build_proxy_result_payload(
         _safe_throttled(build_dilutive_issuance_payload, company_query, scope="summary", start_date=follow_start, end_date=follow_end),
     )
 
-    # 결과 안건별 정리
+    # 결과 안건별 정리 — upstream(shareholder_meeting results scope)은 안건 행을
+    # data.results.items로 노출한다 (구 키 agenda_results는 결과 파싱 개편에서 사라짐 —
+    # 그 뒤 이 코드가 옛 키를 읽어 결과가 항상 0건이던 회귀를 260612 audit에서 발견·교정).
     results_data = (meeting_results.get("data") or {})
-    agenda_results = results_data.get("agenda_results", []) or []
+    _results_obj = results_data.get("results") or {}
+    agenda_results = (
+        (_results_obj.get("items", []) if isinstance(_results_obj, dict) else [])
+        or results_data.get("agenda_results", [])
+        or []
+    )
 
     # 후속 공시 surface
     def _summarize_followup(payload: dict[str, Any], label: str) -> dict[str, Any]:
