@@ -11,6 +11,9 @@ related_audits: [260510_proxy_advise_audit_통합정리, 260503_2304_audit_recap
 created: 2026-05-04
 ---
 
+> **archived 2026-06-13**: tool 제거 (17→16). 핵심(안건별 가결/부결/찬반율)은 [[shareholder_meeting_results]]가 3콜로 동일 제공 (이 tool은 32콜). desc의 '행사 cross-match' 미구현 + 핵심 기능이 한 달간 0건 회귀였는데 무인지 = 실사용 부재. 후속공시·분쟁·거버넌스는 각 tool 직접 호출(raw는 각 tool 직접, LLM이 chain 철학). 코드 사본: archive/services/proxy_result.py
+
+
 # proxy_result_after_meeting
 
 ## 한 줄 요약
