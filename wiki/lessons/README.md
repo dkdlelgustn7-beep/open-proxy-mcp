@@ -1,7 +1,7 @@
 ---
 type: readme
 title: lessons/ — 작업 회고
-updated: 2026-06-01
+updated: 2026-06-13
 ---
 
 # lessons/
@@ -53,3 +53,4 @@ updated: 2026-06-01
 31. [[risk-events-pipeline-260611]] — 리스크 이벤트 6종 통합 tool (I001+B001 채널 매핑, 사상자 supersede 집계)
 32. [[financial-metrics-precision-260612]] — 모델 hedge 역추적 → 412사 전수, 누적 공시는 항상 차분
 33. [[tool-coverage-audit-260612]] — audit 미커버 툴 전수조사 (proxy_result 0건 회귀·seam·render·production), baseline 없는 툴은 죽어도 모른다
+34. [[order-contracts-260613]] — 수주 tool 신설(매출대비%·정정 dedup/diff) + proxy_advise 별도 fact, 같은 공시도 관점 다르면 다른 tool
