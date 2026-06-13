@@ -86,13 +86,19 @@ proxy_result 제거(17→16, 핵심을 results tool이 3콜 vs 32콜로 대체·
 - **corp_gov 값 정확도 (30사)** — 15지표 × 30사 = 450값 전부 O/X 형식, 기록된 기준값과
   정확 일치 (삼성 13/15=86.7%·X항목 집중투표제/배당예측, KT&G·포스코 15/15).
 - **production MCP smoke (fly.io)** — 정식 MCP 클라이언트로 initialize→list→call.
-  ownership 재설계(100% 분해·5% 실세) production 반영 확인. 부수 발견:
-  **OPENDART_API_KEY 1번 키가 DART에서 무효(에러 100)** — 로컬은 KEY_2 fallback으로
-  은폐돼 있었음. per-request 키로 1번을 쓰면 모든 DART 호출 실패 → 키 교체/정리 필요.
+  ownership 재설계(100% 분해·5% 실세) production 반영 확인. (배포 후 1·2번 키 모두 정상
+  재확인.) 주의: 1차 smoke에서 1번 키 호출이 "API 조회 실패: 100"으로 보였으나,
+  curl 직접 검증 결과 **키는 status 000 정상** — 구버전 production + 일시 응답이었고
+  키 무효가 아니었다. **단발 에러로 키 무효를 단정하지 말 것**(아래 메타 참조).
 
 메타: corp_gov 1차 sweep도 **틀린 키(compliance) 가짜 clean**이었다 — 첫 행 출력으로 적발,
 'current' 키로 재실행. 이번 세션에서 가짜 clean 3회 — **sweep 작성 시 첫 케이스의 실제
 키/행을 반드시 출력하고 양성 검사량을 보고하는 것을 표준으로**.
+
+메타2 (오진 정정): production 1차 smoke의 "키 무효" 결론은 **틀렸다**. 단발 "실패: 100"을
+보고 키 무효로 단정했으나, curl로 직접 치니 status 000. 인프라 이상(키/네트워크/권한)은
+**단발 증상으로 단정하지 말고 가장 단순한 직접 호출(curl)로 격리 확인**해야 한다 — tool을
+통한 실패는 구버전·일시응답·rate limit 등 교란 변수가 많다.
 
 ## Takeaway
 
