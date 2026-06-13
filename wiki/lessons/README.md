@@ -15,7 +15,7 @@ updated: 2026-06-01
 - **Trade-off**: 무엇을 잃었나
 - **Takeaway**: 다음에 반복할 원칙
 
-## 목록 (2026-06-01 기준)
+## 목록 (2026-06-13 기준)
 
 1. [[acode-semantic-markers]] — DART 본문 ACODE 발견 → text regex 한계 돌파, 99% 안정성
 2. [[scope-simplification]] — tool 안 specialized scope 폐지 → 사용자 라우팅 단순화
@@ -40,3 +40,16 @@ updated: 2026-06-01
 21. [[director-faithfulness-260510]] — 사외이사 겸직/충실성 fact 노출
 22. [[career-parser-concat-260510]] — careerDetails concat/boundary 처리
 23. [[260510_daily-summary]] — 2026-05-10 일일 작업 요약
+
+### 2026-06 (분쟁신호 · 데이터 정밀화 · 전수조사)
+
+24. [[contest-signals-500-260605]] — 경영권 분쟁 신호 다축화 (5% 동학·소송 4단계), 정보 구조화 + LLM 위임
+25. [[dispute-reverse-lookup-260607]] — 분쟁 공시 역추적이 시총순보다 5배 효율 (142종목 → 70 분쟁)
+26. [[dividend-source-of-truth-260609]] — 배당 출처맵 확정 + 정기보고서 누적 차분, 51사 정합성 100%
+27. [[page-cut-detail-code-260609]] — 페이지컷 truncation → detail-code 좁히기 (6 tool, 차집합 0 검증)
+28. [[ownership-summary-integrity-260610]] — ownership summary 재설계(100% 분해·단독/특관) + 정합성 버그·DART 단위 오염, 450사 전수
+29. [[proxy-advise-stage2-parallel-260610]] — 2단계 조기 발사: 모델 이득이 wall-clock 실측서 반증 → 롤백 (component 모델 ≠ wall-clock)
+30. [[tool-naming-discovery-260610]] — tool 이름·desc가 자연어 라우팅을 좌우 (related_party_transaction → corporate_deals)
+31. [[risk-events-pipeline-260611]] — 리스크 이벤트 6종 통합 tool (I001+B001 채널 매핑, 사상자 supersede 집계)
+32. [[financial-metrics-precision-260612]] — 모델 hedge 역추적 → 412사 전수, 누적 공시는 항상 차분
+33. [[tool-coverage-audit-260612]] — audit 미커버 툴 전수조사 (proxy_result 0건 회귀·seam·render·production), baseline 없는 툴은 죽어도 모른다
