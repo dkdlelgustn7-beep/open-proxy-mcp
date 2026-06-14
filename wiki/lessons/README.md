@@ -55,3 +55,4 @@ updated: 2026-06-13
 33. [[tool-coverage-audit-260612]] — audit 미커버 툴 전수조사 (proxy_result 0건 회귀·seam·render·production), baseline 없는 툴은 죽어도 모른다
 34. [[order-contracts-260613]] — 수주 tool 신설(매출대비%·정정 dedup/diff) + proxy_advise 별도 fact, 같은 공시도 관점 다르면 다른 tool. 해지 파서 전수·corporate_deals 공급계약 일원화·추론 제거(파싱만)
 35. [[proxy-advise-perf-fact-260614]] — 성과 매트릭스 점수는 절제·펀더멘털은 fact(영업이익률·수주), treasury 동적 lookback(정확도 보존 mismatch 0), throttle 하한
+36. [[shareholder-meeting-agenda-parse-260615]] — 주총 안건 파싱 점검(진행중): 보수한도 단위 미환산·폴백 4종 + agenda 카테고리 분류. 큰샘플 진단→폴백→regression 방법론. **남은: 선임/재무제표/정관 세부**
