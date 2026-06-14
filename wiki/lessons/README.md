@@ -53,4 +53,5 @@ updated: 2026-06-13
 31. [[risk-events-pipeline-260611]] — 리스크 이벤트 6종 통합 tool (I001+B001 채널 매핑, 사상자 supersede 집계)
 32. [[financial-metrics-precision-260612]] — 모델 hedge 역추적 → 412사 전수, 누적 공시는 항상 차분
 33. [[tool-coverage-audit-260612]] — audit 미커버 툴 전수조사 (proxy_result 0건 회귀·seam·render·production), baseline 없는 툴은 죽어도 모른다
-34. [[order-contracts-260613]] — 수주 tool 신설(매출대비%·정정 dedup/diff) + proxy_advise 별도 fact, 같은 공시도 관점 다르면 다른 tool
+34. [[order-contracts-260613]] — 수주 tool 신설(매출대비%·정정 dedup/diff) + proxy_advise 별도 fact, 같은 공시도 관점 다르면 다른 tool. 해지 파서 전수·corporate_deals 공급계약 일원화·추론 제거(파싱만)
+35. [[proxy-advise-perf-fact-260614]] — 성과 매트릭스 점수는 절제·펀더멘털은 fact(영업이익률·수주), treasury 동적 lookback(정확도 보존 mismatch 0), throttle 하한
