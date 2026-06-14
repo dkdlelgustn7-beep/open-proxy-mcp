@@ -143,6 +143,28 @@ corporate_deals도 **같은 단일공급계약 공시**(I001)를 일감몰아주
 import(order_contracts→corporate_deals._extract_text 기존) 회피 위해 함수 내 지역 import.
 → **관점이 달라 tool은 둘이어도 파서의 견고함은 공유**해야 한다(한쪽 audit 성과를 다른 쪽이 상속).
 
+### 공급계약 일원화 — "관점 차이"보다 "가공 깊이 차이"가 본질 (2026-06-14)
+
+파서 공유 직후 사용자가 되물었다: "그럴 거면 애초에 order_contracts가 필요없는 거 아니냐?"
+방어("관점이 다르다") 대신 코드로 검증하니 — corporate_deals의 공급계약 처리는 **메타 나열**
+수준이었다: `is_correction` 플래그만 달 뿐 **dedup·순수주·매출대비 요약·정정 diff 없음**.
+실측: 에스티팜 공시 8건(정정 4 포함)을 그냥 나열 vs order_contracts는 정정 dedup→유효 6계약,
+순수주 3,945억. 케어젠은 해지 차감해 순수주 -164억. **corporate_deals 출력만으론 수주 분석
+자체가 불가**(정정 중복으로 금액 뻥튀기, 해지 미차감).
+
+→ 두 tool의 차이는 "관점(긍정/부정)"이 아니라 **가공 깊이**(나열 vs 시그널)였다. 그래서
+**공급계약을 order_contracts로 완전 일원화**:
+- corporate_deals에서 supply_contract scope·`_fetch/_parse/_classify_supply_contract`·카운트
+  제거 → **타법인주식(지분 인수/매각) 전담**으로 이름값 회복. equity가 쓰는 헬퍼
+  (`_extract_text`/`_find_*`/`_is_self_filing`/`_is_subsidiary_report`)는 보존.
+- order_contracts가 **일감몰아주기 관점 흡수**: 외부/계열을 `is_external`로 이미 구분하던 위에
+  `internal_total_amount_won`(계열 일감 규모) + `subsidiary_report`/`self_filing` 메타 추가.
+  일감몰아주기의 두 축 = 지분 출자/회수(corporate_deals) + 계열 일감(order_contracts internal).
+- 일감몰아주기 감시 손실 없음 — order_contracts가 계열 공급계약을 분리 표시.
+
+교훈: **"같은 공시 다른 tool"의 정당성은 관점 레토릭이 아니라 출력의 실제 가공 차이로 검증하라.**
+한쪽이 나열만 하면 그건 분리가 아니라 미완성이다. 사용자의 "필요없는 거 아니냐"가 정확한 칼이었다.
+
 ## Takeaway
 
 - **같은 공시도 관점이 다르면 다른 tool.** 단일공급계약 = corporate_deals(일감몰아주기, 부정)
