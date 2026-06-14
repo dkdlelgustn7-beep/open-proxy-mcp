@@ -134,6 +134,15 @@ CDMO/원료/백신(프레스티지·SK바사·에스티팜·바이넥스)만 수
 매핑(dedup 키 재활용)은 '같은 window 내 빠른 해지'(수주 후 1년 내 해지=강한 부정신호)만 잡힘.
 오래된 수주 해지는 해지 단독 표시 + 순수주(외부 체결−해지)에 반영.
 
+### corporate_deals 파서 공유 — 같은 공시는 같은 견고함
+
+corporate_deals도 **같은 단일공급계약 공시**(I001)를 일감몰아주기 관점으로 파싱하는데,
+`_parse_supply_contract_document`가 `체결계약명`/`계약상대`만 봐 해지 계약명을 4/4 통째로
+놓쳤다(대우건설·휴마시스·대웅·코오롱). order_contracts의 검증된 `_contract_name`/`_counterparty`를
+**fallback으로 재사용**(체결계약명/계약상대가 비면 발동 → 기존 동작 100% 보존). 순환
+import(order_contracts→corporate_deals._extract_text 기존) 회피 위해 함수 내 지역 import.
+→ **관점이 달라 tool은 둘이어도 파서의 견고함은 공유**해야 한다(한쪽 audit 성과를 다른 쪽이 상속).
+
 ## Takeaway
 
 - **같은 공시도 관점이 다르면 다른 tool.** 단일공급계약 = corporate_deals(일감몰아주기, 부정)
