@@ -3,7 +3,7 @@ type: lesson
 title: 주총 안건 파싱 점검 — 보수한도 단위 버그 + 카테고리 분류 부재 (진행중)
 context: 2026-06-15 "KOSPI 시총 상위 50 보수한도 상향/하향" → "모든 주총 안건 점검" 확장
 date_learned: 2026-06-15
-related: [proxy-advise-perf-fact-260614, order-contracts-260613]
+related: [proxy-advise-perf-fact-260614, order-contracts-260613, agenda-typed-status-audit-260615, financial-metrics-evidence-fsdiv-260615, holder-table-parser-260615]
 ---
 
 # 주총 안건 파싱 전수 점검 (진행중 — 다른 컴퓨터에서 이어갈 것)
@@ -59,21 +59,29 @@ scope(`_agenda_nodes`)에 적용(순환 import 회피 지역 import) + 영문 `c
 선임 516(34%) · 보수한도 315(21%) · 재무제표 250(17%) · 정관변경 246(16%) · 자기주식 63 ·
 퇴직금 26 · 자본감액 4 · 배당 2
 
-## 남은 작업 (다음 컴퓨터에서 이어갈 것)
+## 남은 작업 / 진행 상황 (2026-06-15 갱신 — 병렬 세션 반영)
 
-안건 **검출/제목/카테고리(공통)** + **보수한도 세부**는 완료. **종류별 세부 파싱**이 남음 —
-빈도순으로:
+안건 **검출/제목/카테고리(공통)** + **보수한도 세부**는 완료. 종류별 세부 파싱은 **병렬 세션에서
+상당 부분 진행됨**(pull 후 확인). 현 상황:
 
-1. **선임 (516건, 34%)** — board scope / director_evaluation (후보 경력·결격·독립성). 가장 많고
-   의결권 판단 핵심 → 1순위. `scripts/`에 director 진단 스크립트 신규 작성, 큰 샘플 진단 →
+1. **선임 (516건, 34%)** — board scope / director_evaluation (후보 경력·결격·독립성).
+   ⬜ **아직 전수 점검 미진행 — 다음 1순위.** director 진단 스크립트 신규 작성 → 큰 샘플 진단 →
    실패 유형 → 폴백 → regression.
-2. **재무제표 (250건, 17%)** — financials scope (배당 정보 포함 케이스 주의)
-3. **정관변경 (246건, 16%)** — aoi_change scope (퇴직금/보수가 정관 형태로 들어오는 한국 관행)
-4. 자기주식·퇴직금·자본감액 등 소수 종류
+2. **재무제표 (250건, 17%)** — ✅ evidence 원문 rcept 부착 + CFS→OFS 폴백 경고 + 순이익 QoQ
+   alert 진행됨 → [[financial-metrics-evidence-fsdiv-260615]]
+3. **정관변경 (246건, 16%)** — ✅ **KOSPI 485사 정관 전수 완료**(실패 1사·0.2%, audit
+   `260615_aoi_kospi_census`). 기업은행(정관변경이 타 안건 detail에 흡수, commit e781989)·
+   한국금융지주(소집공고 vs 소집결의 추적 정정, commit 1ff47a3) 개별 수정.
+4. **안건 유형별 parse_status 확대** — ✅ **320사 전수 후 "불필요" 결정** →
+   [[agenda-typed-status-audit-260615]]. 보수한도식 타입화 status를 선임·정관 등에 일괄 확대하지
+   않음("빈손"이 아니라 "그럴듯하게 틀림"이 위험 — 종류별 맞춤 검증이 맞다).
+5. **5% 합계표(지분 분쟁)** — ✅ 본인/공동보유 분리 파서 + 140사 전수 →
+   [[holder-table-parser-260615]] (이번 주총 안건과 별개 축이나 같은 시기 진행).
 
-각 종류마다 동일 방법론: ① 진단 스크립트로 큰 샘플(코스피+코스닥 255사) 실패 유형 분류 →
-② 폴백(셀오염 추출/유효값 살리기/플래그+raw/parse_status/warning) → ③ before/after regression
-측정(정확도·속도 회귀 0 확인). 단위·통화·한쪽누락 패턴은 보수한도에서 만든 헬퍼 재사용 가능.
+→ **실질 남은 것은 선임(board) 세부 파싱 점검.** 진단 방법론(아래)은 그대로 재사용:
+① 큰 샘플(코스피+코스닥 255사) 실패 유형 분류 → ② 폴백(셀오염 추출/유효값 살리기/플래그+raw/
+parse_status/warning) → ③ before/after regression(정확도·속도 회귀 0). 단, parse_status 일괄
+확대는 위 4번 결정대로 지양하고 선임 종류 맞춤 지표로.
 
 ## Takeaway
 
