@@ -60,10 +60,43 @@ proxy_contest의 5% signal `ownership_pct`는 대량보유보고서 헤드라인
   시 재분류하지 말고 현재 라벨 유지 + "본인/합산 미확정" 표시. 6% 실패가 분류를 막지 않게.
 - 약식(기관 단순투자)은 특관 분해 대상이 아니므로 fail이 아니라 정상 경로.
 
-## 다음 단계 (미착수 — 결정 필요)
+## 통합 완료 (2026-06-15)
 
-proxy_contest 통합: ① 5% signal별 합계표 파싱 ② 특관에 명부 최대주주 있으면
-`coheld_with_registry` 재분류 + 본인/합산 분리 노출 ③ 분쟁사·일반 표본 회귀.
-proxy_contest는 분쟁 신호 튜닝이 많은 핵심 tool이라 회귀 세트 필수 → 별도 작업으로 분리.
+파서를 공용 모듈 `open_proxy_mcp/services/holder_table.py`로 추출하고
+**ownership_structure + proxy_contest 양쪽에 반영**했다. 5% 블록은 proxy_contest가
+ownership_structure의 control_context(control_map)에서 받으므로, ownership_structure 소스
+한 곳을 enrich하면 두 tool이 함께 개선된다.
 
-raw: [[260615_holder_table_census]] / 파서: `scripts/holder_table_census.py`
+### 변경 지점
+- `ownership_structure._latest_block_rows`: 능동(경영참여)+유의미(≥5%) 블록만 본문 합계표
+  파싱(보통 1~3건으로 비용 제한). 합계표 없음(약식)·파싱 실패면 `holder_table=None`으로
+  두고 기존 라벨 유지(graceful fallback).
+- `ownership_structure._build_control_map`: 각 블록에 `self_pct`(보고자 본인 지분),
+  `coheld_with_registry`(특관에 명부 최대주주 포함), `coheld_names` 추가(additive — 기존
+  버킷 구조 불변). coheld 블록엔 observation 추가("…23.11%는 보고자 합산값이며 특관에
+  명부상 최대주주 포함(본인 5.33%) — 외부 세력 단정 불가").
+- `proxy_contest._signal_actor_side`: 우선순위 registry_overlap > **coheld_with_registry** >
+  external_active_block > passive. `_fight_actor_group`도 coheld 인식.
+- `proxy_contest`: `active_external_total_pct`에서 coheld 블록 제외(헤드라인이 명부 최대주주
+  합산이라 related_total_pct와 이중계상 + 외부 압력 오독 방지) → signal_level 정확화.
+
+### 검증 (scripts/coheld_integration_test.py, raw: 260615_coheld_integration_test)
+- **타깃 솔루엠**: 얼라인 23.11% → self_pct 5.33 / coheld_with_registry=True /
+  coheld_names=['전성호'], actor_side가 external_active_block → coheld_with_registry로 교정.
+- **회귀 분쟁 60사**: crash 0. coheld 32사 발화 — 대부분 *정당한 교정*(현대차·삼성생명·
+  셀트리온홀딩스·농협금융지주 등 이름이 명부 키와 정확히 안 맞아 '외부'로 오분류되던
+  지배주주/모회사를 특관 매칭으로 포착).
+- **스모크**: 고려아연 — 영풍은 registry_overlap 유지(우선순위), litigation 14·shareholder
+  side 4 보존(분쟁 탐지 손실 없음). 삼성전자 — 삼성물산 registry_overlap, 분쟁 신호 미발화
+  (과발화 없음).
+- **테스트 스위트**: 65 proxy/ownership/control 테스트 통과, 전체 82통과(잔여 3실패는
+  dividend/treasury timing — 본 변경과 무관, 사전 존재 확인됨).
+
+### 잔존 한계
+- coheld는 정규화 풀네임 정확매칭이라 흔한 이름 우연 충돌 가능(빈도 낮음, 결과는 external→
+  coheld 완화로 경미). 명부 자체가 최대주주+특수관계인이라 매칭 시 대체로 유의미.
+- 보고자 본인 이름은 명부에 없지만 실세인 케이스(최윤범 등)는 특관 매칭도 안 되면 여전히
+  external_active_block — 본 통합 범위 밖(기존 한계 유지, coheld=False).
+
+raw: [[260615_holder_table_census]] / 파서: `open_proxy_mcp/services/holder_table.py` /
+검증: `scripts/coheld_integration_test.py` ([[260615_coheld_integration_test]])
