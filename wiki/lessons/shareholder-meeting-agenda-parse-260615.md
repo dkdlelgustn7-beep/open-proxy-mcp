@@ -65,8 +65,12 @@ scope(`_agenda_nodes`)에 적용(순환 import 회피 지역 import) + 영문 `c
 상당 부분 진행됨**(pull 후 확인). 현 상황:
 
 1. **선임 (516건, 34%)** — board scope / director_evaluation (후보 경력·결격·독립성).
-   ⬜ **아직 전수 점검 미진행 — 다음 1순위.** director 진단 스크립트 신규 작성 → 큰 샘플 진단 →
-   실패 유형 → 폴백 → regression.
+   ✅ **255사 후보 1171명 전수 완료** (`director_eval_diagnosis.py`, commit 680cceb). 이름/결격
+   (clean 1170·red_flag 1)/독립성 3축(최대주주·3년거래·5년룰 100% success)/선임유형 견고.
+   recent_2y_employee만 98% soft-fail(경력이 '재직/근무' 키워드 없는 직책 형식) → soft-fail 시
+   경력 raw를 evidence로 노출(학력 제외·최근순). regression: 판정 분포 전부 동일(회귀 0),
+   evidence 채움 0→1147/1147. **교훈: 진단 스크립트가 필드명 틀리면 멀쩡한 축을 "100% 실패"로
+   오진한다(결격 unknown 100% → 실제 clean). 원본 구조 먼저 확인할 것.**
 2. **재무제표 (250건, 17%)** — ✅ evidence 원문 rcept 부착 + CFS→OFS 폴백 경고 + 순이익 QoQ
    alert 진행됨 → [[financial-metrics-evidence-fsdiv-260615]]
 3. **정관변경 (246건, 16%)** — ✅ **KOSPI 485사 정관 전수 완료**(실패 1사·0.2%, audit
@@ -78,10 +82,11 @@ scope(`_agenda_nodes`)에 적용(순환 import 회피 지역 import) + 영문 `c
 5. **5% 합계표(지분 분쟁)** — ✅ 본인/공동보유 분리 파서 + 140사 전수 →
    [[holder-table-parser-260615]] (이번 주총 안건과 별개 축이나 같은 시기 진행).
 
-→ **실질 남은 것은 선임(board) 세부 파싱 점검.** 진단 방법론(아래)은 그대로 재사용:
+→ **주요 안건 종류(보수한도·선임·재무제표·정관) 세부 파싱 점검 완료.** 남은 건 소수 종류
+(자기주식·퇴직금·자본감액 등) — 빈도 낮고 의결권 영향 작아 우선순위 낮음. 필요 시 동일 방법론:
 ① 큰 샘플(코스피+코스닥 255사) 실패 유형 분류 → ② 폴백(셀오염 추출/유효값 살리기/플래그+raw/
-parse_status/warning) → ③ before/after regression(정확도·속도 회귀 0). 단, parse_status 일괄
-확대는 위 4번 결정대로 지양하고 선임 종류 맞춤 지표로.
+parse_status/warning/경력 raw evidence) → ③ before/after regression(정확도·속도 회귀 0). 단,
+parse_status 일괄 확대는 위 4번 결정대로 지양하고 종류 맞춤 지표로.
 
 ## Takeaway
 
