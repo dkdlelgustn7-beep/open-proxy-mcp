@@ -3,7 +3,7 @@ type: lesson
 title: financial_metrics 정밀화 — 호스트 모델의 hedge가 가리킨 파싱 결함을 전수 audit으로 수렴
 context: 2026-06-12 실사용 "SK하이닉스 26Q1 실적/현금흐름" 질의에서 호스트 모델이 장시간 추론 + "확인 필요" 다발 → 원천 추적
 date_learned: 2026-06-12
-related: [dividend-source-of-truth-260609, risk-events-pipeline-260611]
+related: [dividend-source-of-truth-260609, risk-events-pipeline-260611, financial-metrics-evidence-fsdiv-260615]
 ---
 
 # financial_metrics 정밀화 — hedge 역추적과 전수 audit
