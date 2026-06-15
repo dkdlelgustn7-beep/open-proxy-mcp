@@ -56,3 +56,4 @@ updated: 2026-06-13
 34. [[order-contracts-260613]] — 수주 tool 신설(매출대비%·정정 dedup/diff) + proxy_advise 별도 fact, 같은 공시도 관점 다르면 다른 tool. 해지 파서 전수·corporate_deals 공급계약 일원화·추론 제거(파싱만)
 35. [[proxy-advise-perf-fact-260614]] — 성과 매트릭스 점수는 절제·펀더멘털은 fact(영업이익률·수주), treasury 동적 lookback(정확도 보존 mismatch 0), throttle 하한
 36. [[shareholder-meeting-agenda-parse-260615]] — 주총 안건 파싱 점검: 보수한도 단위 미환산·폴백 4종 + agenda 카테고리 분류. 큰샘플 진단→폴백→regression 방법론. 재무제표·정관·parse_status확대는 병렬 세션 진행, **실질 남은 건 선임(board) 세부**
+37. [[render-output-audit-260616]] — render 출력 점검(11 tool·410사): 데이터는 멀쩡한데 화면만 이상(dict 노출·None%·군더더기) 3종 + 독립성 evidence 화면 구조화 노출 + 경고 아이콘 ⚠️ 통일. `.get(key,default)`는 None값에 default 안 씀
