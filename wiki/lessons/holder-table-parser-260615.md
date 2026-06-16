@@ -100,3 +100,37 @@ ownership_structure의 control_context(control_map)에서 받으므로, ownershi
 
 raw: [[260615_holder_table_census]] / 파서: `open_proxy_mcp/services/holder_table.py` /
 검증: `scripts/coheld_integration_test.py` ([[260615_coheld_integration_test]])
+
+## 공동보유자 명세 제품화 (2026-06-16)
+
+웹 실사용에서 "솔루엠 전성호 32.78%의 공동보유자가 누구냐"에 답하지 못했다. 원인은 데이터가
+*없어서*가 아니라 ① 파싱은 됐지만 출력에 노출 안 됨(control_map raw 필드에만) ② 이름 품질
+버그였다. 이미 파싱된 데이터를 정제+라벨링+노출하는 작업.
+
+### Did
+1. **파서 정제** (`holder_table.py`):
+   - self 이름 오염 제거 — 앵커 `주수 비율 보고자`를 `start`가 아닌 `.end()`부터 파싱
+     (기존 "주수 비율 전성호" → "전성호").
+   - **펀드/조합명 숫자 truncation 해결** — 이름 문자클래스에 `0-9` 허용. '제N호'의 단자리
+     숫자는 ID 정규식(5~13자리)에 안 걸려 안전. ("호" → "신한 메자닌 신기술투자조합 제3호").
+   - `holder_table_total()` 헬퍼 — 본인+특관 합(불변식 검증용).
+2. **라벨링·노출** (`ownership_structure.py` + render): 공동보유 분해를 공용 헬퍼
+   `_enrich_co_holders`로 **모든 scope(summary/blocks/control_map)** 5% 블록에 부착 →
+   `reporter_self_pct`(본인) / `co_holders`[{name, ownership_pct, is_registry_holder}] /
+   `co_holders_total_pct` / `co_holders_verified`(합≈헤드라인). render에 "공동보유자 분해" 표
+   추가, **불변식 불일치 시 ⚠미검증 표시**(확정 인용 금지 — plausible-wrong 방지). tool desc에
+   "본인 vs 공동보유자" 질의·필드 안내 명시(웹 AI 인지).
+3. **검증 — 332사 전수**(분쟁 엣지 140 + 일반 top 192, `coheld_quality_census.py`):
+   - 이름 품질 의심 **5사 → 1사**(펀드명 truncation 해소).
+   - 불변식 정합 **92.7% (255/275) — before/after 불변(회귀 0)**, 파싱 fail 2 불변.
+   - 솔루엠 전성호: 본인 15.2% + 소푸스제일차 9.05% + 얼라인계열 5.34% + 신한메자닌 조합 +
+     가족(명부 ✓) — 합 34.69 vs 헤드라인 32.78 → `verified=False`로 정직하게 표시.
+
+### 교훈
+- **"못 준다"의 진짜 원인을 구분** — 파싱 부재 vs *노출 부재*. 데이터는 raw 필드에 있었고
+  렌더·라벨이 없어 (웹)모델이 못 읽은 것. 제품화 = 파싱+**노출/라벨**.
+- **불변식 플래그로 honesty 유지** — 합 불일치(영문명·정정중복 등 ~7%)는 고치기 어려우니
+  `verified=False`로 표기해 "그럴듯하게 틀린 확정값"을 막는다(이 도구 설계 원칙과 일치).
+- 정규식 이름 문자클래스는 도메인(펀드 '제N호')을 반영해야 — 숫자 배제가 조합명을 잘랐다.
+
+raw: [[260616_coheld_quality_census]] / 검증: `scripts/coheld_quality_census.py`
