@@ -70,6 +70,31 @@ dismissal)"**도 똑같이 위험 — 진짜 사건(초호황)을 산출 버그�
 - **plausible dismissal 경계.** 극단값일수록 기각 전에 본문 대조. 사용자 직관(현장 감각)이
   컷오프 묶인 모델 직관을 이긴 사례.
 
+## 후속 보강 (2026-06-16) — 같은 SK하이닉스 26Q1 재질의에서 드러난 3건
+
+다음 날 동일 질의가 또 들어왔고, 호스트 모델이 ① 2026-Q1을 한 번에 못 잡아 재호출했고
+② 표에서 순이익·영업이익률 QoQ/YoY를 "–"로 비웠다. 원인 추적·교정:
+
+1. **분기 인지형 디폴트** (1왕복 낭비 제거). `target_year = year or _default_recent_year()`인데
+   `_default_recent_year()`는 연간 사업보고서 cadence(결산 후 3월말 제출) 기준이라 오늘(6월)
+   기준 **2025**를 반환 → 디폴트 quarterly가 2023~2025-Q4만, **이미 5/15 공시된 2026-Q1을
+   미포함**. 모델이 "2025까지만 나오네요" → year=2026 재호출. 수정: **quarterly/qoq scope만
+   디폴트 end_year를 당해 연도(`date.today().year`)로**. `_build_quarterly`가 `end_year-2…
+   end_year`×4=12콜 고정 + 미공시 분기 graceful skip이라 **호출 수 변동 0**, window만 한 칸
+   위로. 연초(미공시 시점)엔 자동으로 전년 Q4까지만. summary/yearly/yoy는 연간이라 현행 유지.
+2. **영업이익률 QoQ/YoY = "–"는 정당했다 → %p로 동봉**. delta dict 키가 손익 3개
+   (revenue/operating_profit/net_income)뿐이라 마진 변화는 애초에 미계산. 비율은 증감률(%)이
+   아니라 **%포인트** 차이로 보는 게 맞아 `_pp_diff` 헬퍼로 `operating_margin_pp`/
+   `net_profit_margin_pp`를 qoq_pct·yoy_pct에 추가(`_pp` 접미사로 손익 %change와 구분).
+   검증: 2026-Q1 영업이익률 QoQ +13.13%p / YoY +29.35%p.
+3. **순이익 "–"는 코드 결함이 아니라 narration 편향**(재확인). payload엔 qoq +164.63 /
+   yoy +397.59가 모든 scope에 존재(qoq·summary 둘 다 확인). 즉 도구는 담아 보내는데 모델이
+   **가장 이상해 보이는 지표(순이익>영업이익, +398%)를 자신없어 빼는** 편향. 코드로 강제할
+   수 없으나, #2로 빈칸을 채워 모델이 표를 메우기 쉽게 만드는 게 현실적 완화. → "선택적 서술
+   경계"(위 메타 교훈)의 재발 사례. **payload 대칭만으론 부족하고, 빈칸 최소화가 narration을
+   돕는다**는 점이 추가 교훈.
+
 ## 회귀
 - financial 관련 테스트 통과, 전체 82통과(잔여 3 실패 dividend/treasury timing은 본 변경과
-  무관 — stash 대조로 사전 존재 확인). 변경은 `services/financial_metrics.py` 1파일.
+  무관 — stash 대조로 사전 존재 확인). 변경은 `services/financial_metrics.py` 1파일
+  (260615 evidence/fs_div/alert + 260616 디폴트/마진pp).
