@@ -94,7 +94,44 @@ dismissal)"**도 똑같이 위험 — 진짜 사건(초호황)을 산출 버그�
    경계"(위 메타 교훈)의 재발 사례. **payload 대칭만으론 부족하고, 빈칸 최소화가 narration을
    돕는다**는 점이 추가 교훈.
 
+## 후속 보강 2 (2026-06-16) — 현금흐름 질의에서 드러난 기간(period) 처리 결함
+
+"현금흐름 분석" 재질의에서 호스트 모델이 ① "Q1 2026 분기 CF는 안 잡힌다"로 단정(실은
+`summary year=2026`이면 잡힘 — year 미지정 탓) ② 회전일수 DSO 154·DIO 511일 같은 비현실값을
+냄. 추적하니 **`_compute_metrics`가 연간 가정으로 고정**돼 있던 게 근본이었다.
+
+### DART 기간 의미가 항목별로 다르다 (핵심 사실, 실측)
+- **손익(IS) `thstrm` = 당기 3개월(standalone)** (반기=Q2, 3분기=Q3), 누적은 `thstrm_add`.
+- **현금흐름(CF) `thstrm` = 누적** (반기=6M, 3분기=9M), standalone 컬럼 없음(`thstrm_add`=None).
+- **재무상태(BS) = 잔액**(기간 무관).
+→ 기존엔 전부 `thstrm`만 읽어 **summary가 분기보고서로 fallback되면 IS(3M)+CF(누적)을 섞어**
+CFO/영업이익이 6M÷3M로 깨지고, 회전일수는 3개월 flow에 ×365라 ~4배 과대(DIO 511).
+
+### Did
+1. **손익 두 기준(누적/당기) 동시 산출.** 누적(primary)=IS `thstrm_add`+CF `thstrm`(기간
+   일치), 당기(standalone)=IS `thstrm`+CF는 **직전 보고서와 차분**(반기=H1−Q1, 3분기=9M−H1,
+   직전 보고서 1콜). BS는 항상 잔액. `_build_account_map(_all)`에 `cumulative_is` 모드 추가.
+2. **회전일수 TTM 분모.** 단일분기 연환산(×91일 기간일치)은 ×365 버그보단 낫지만 **호황/급변
+   분기에서 방향까지 틀린다** — SK 26Q1: AR이 3배(10.6→33.8조)인데 단일분기 DSO는 58.6→38.6
+   으로 *하락*(거짓 개선). 실험(단일분기 vs YoY동일분기 vs TTM)에서 **YoY도 일회성 호황은 못
+   잡고, TTM만 정확**(DSO 61.4, 연간 58.6 정합, AR증가 반영). TTM=`직전FY + 당기YTD − 전년YTD`
+   (직전 FY 1콜, 실패 시 기간일치 fallback). AR/재고 평균은 이미 (당기말+전년동기말)/2라 정합.
+3. **ROE/ROA/자산회전율은 연환산 안 함** — 계절성 가정 피해 분기값 그대로 두고 `period_months`/
+   `is_annualized_basis=False`로 라벨. CFO 비율은 기간 정합 maps로 자동 해결.
+4. **기준 항상 명시** — 모든 metrics에 `period_basis`(annual/cumulative_Nm/quarter_3m)·
+   `turnover_basis`(ttm/annual/period_matched)·`period_months`·사람용 `basis_note`. 회전일수가
+   당기/누적/TTM 중 무엇 기준인지 응답에서 늘 드러나게.
+
+### 핵심 교훈
+- **DART 기간 의미를 항목별로 알아야 한다**(IS=3M standalone / CF=누적 / BS=잔액). 모르면
+  비율이 조용히 다른 기간끼리 섞여 "그럴듯하게 틀림".
+- **회전일수는 단일분기 연환산이 기간 일치여도 부족** — 잔액(AR)은 점값인데 분모만 한 분기를
+  연환산하면 급변기에 방향이 뒤집힌다. **TTM이 표준 정답**, YoY 비교로도 일회성 왜곡은 안 풀림.
+- 비율을 낼 땐 **분자·분모의 기간을 먼저 맞추고, 어느 기준인지 항상 표기**.
+
 ## 회귀
 - financial 관련 테스트 통과, 전체 82통과(잔여 3 실패 dividend/treasury timing은 본 변경과
   무관 — stash 대조로 사전 존재 확인). 변경은 `services/financial_metrics.py` 1파일
-  (260615 evidence/fs_div/alert + 260616 디폴트/마진pp).
+  (260615 evidence/fs_div/alert + 260616 디폴트/마진pp + 누적·당기 두 기준·TTM 회전일수·basis 명시).
+- 검증 수치: 1Q'26 DSO 511→127.8(기간일치)→**61.4(TTM)**, CFO/영익 0.70(3M정합), 연간 2025
+  값 불변(DSO 58.6). 반기/3분기 두 기준 차분 invariant 확인(H1 39.9=Q1 17.6+Q2 22.2 등).
