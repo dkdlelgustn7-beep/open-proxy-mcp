@@ -57,4 +57,4 @@ updated: 2026-06-13
 35. [[proxy-advise-perf-fact-260614]] — 성과 매트릭스 점수는 절제·펀더멘털은 fact(영업이익률·수주), treasury 동적 lookback(정확도 보존 mismatch 0), throttle 하한
 36. [[shareholder-meeting-agenda-parse-260615]] — 주총 안건 파싱 점검: 보수한도 단위 미환산·폴백 4종 + agenda 카테고리 분류. 큰샘플 진단→폴백→regression 방법론. 재무제표·정관·parse_status확대는 병렬 세션 진행, **실질 남은 건 선임(board) 세부**
 37. [[render-output-audit-260616]] — render 출력 점검(11 tool·410사): 데이터는 멀쩡한데 화면만 이상(dict 노출·None%·군더더기) 3종 + 독립성 evidence 화면 구조화 노출 + 경고 아이콘 ⚠️ 통일. `.get(key,default)`는 None값에 default 안 씀
-38. [[topdown-screening-feasibility-260617]] — 탑다운 스크리닝(영업이익30%+·주주제안) 500사 전수: 파서(b)는 OK·막힌 건 설계(a, 유니버스 스크리닝 레이어 부재)·지표 기반은 사전 인덱싱(c) 필수. 탑다운 3유형(공시유형 콜1/본문안건 콜1천/본문지표 콜7천)
+38. [[topdown-screening-feasibility-260617]] — 탑다운 스크리닝(영업이익30%+·주주제안) 500사 전수: 파서(b)·정보(필드 인벤토리)도 충분(financial 36지표·ownership 42필드) → 정보상 지금 바로 가능. 막힌 건 효율(순회 비용)뿐 — 설계(a)/사전인덱싱(c)으로. 탑다운 3유형(공시유형 콜1/본문안건 콜1천/본문지표 콜7천)
