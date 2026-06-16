@@ -52,6 +52,18 @@ related: [shareholder-meeting-agenda-parse-260615, proxy-advise-perf-fact-260614
   깨진텍스트/카테고리None/비정상숫자). `_SKIP_LINE`으로 정상(rcept_no·소수점) 오탐 제외.
   UNIVERSE_FILE/LIMIT/PA_LIMIT/JOBS_LIMIT 파라미터화. XL 410사·11 tool·11582콜·52분 실증.
 
+## raw 금액 환산 — 값만 있고 단위 환산이 없는 것 (commit 다음)
+
+"레이블 없는 값" 점검(bullet 패턴)은 **0건**(render bullet에 레이블 다 붙어 있음). 단 부수로
+**환산 안 된 raw 금액**을 발견 — treasury 금액(원) `7,174,299,854,900`(7조를 쉼표 숫자로),
+dividend 배당총액 `11,107,906백만원`(11조). 헤더 레이블(`금액(원)`)은 있으나 조/억 환산이 없어
+"이게 몇 조야?"가 한눈에 안 보였다.
+
+→ 공용 `_won`(조/억) 정책을 treasury·dividend에 통일 적용(order_contracts·proxy_advise와 동일).
+`7,174,299,854,900` → `7.17조원`, `11,107,906백만원` → `11.11조원`. treasury 헤더 `금액(원)`→`금액`.
+**단 주식수(`1,174,366,888`)·단가(`162,400원`)는 환산 X** — 주식수는 지분%가 핵심이라 raw가 맞고,
+단가는 작아 환산 무의미. 금액 컬럼만 정확히 골라 환산하는 게 핵심(주식수까지 환산하면 오히려 틀림).
+
 ## Takeaway
 
 - **데이터 점검 ≠ 화면 점검.** payload는 정상인데 render에서 dict 노출·None%·군더더기가 뜬다.
