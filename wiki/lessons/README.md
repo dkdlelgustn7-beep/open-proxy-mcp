@@ -59,3 +59,6 @@ updated: 2026-06-13
 37. [[render-output-audit-260616]] — render 출력 점검(11 tool·410사): 데이터는 멀쩡한데 화면만 이상(dict 노출·None%·군더더기) 3종 + 독립성 evidence 화면 구조화 노출 + 경고 아이콘 ⚠️ 통일. `.get(key,default)`는 None값에 default 안 씀
 38. [[topdown-screening-feasibility-260617]] — 탑다운 스크리닝(영업이익30%+·주주제안) 500사 전수: 파서(b)·정보(필드 인벤토리)도 충분(financial 36지표·ownership 42필드) → 정보상 지금 바로 가능. 막힌 건 효율(순회 비용)뿐 — 설계(a)/사전인덱싱(c)으로. 탑다운 3유형(공시유형 콜1/본문안건 콜1천/본문지표 콜7천)
 39. [[treasury-multitype-result-260617]] — 자사주 취득결과 보통주+우선주 복수 종류일 때 ACODE(ACQ_AMT)가 보통주만 잡아 우선주 누락(미래에셋 600억 vs 결정 1,000억). 일별 취득가액총액 합산으로 보정, 5%가드+단일종류 무변=회귀 안전
+40. [[holder-table-parser-260615]] — 5% 대량보유 합계표 파서(보고자 본인 vs 특별관계자) 140사 검증 + 공동보유자 명세 제품화: ㈜·LEI·영문명·제N호 정제, 332사 불변식 95.3%, verified=False로 honesty. ownership_structure 노출
+41. [[financial-metrics-evidence-fsdiv-260615]] — "불가능해 보인 실적"이 실제(SK하이닉스 26Q1 OPM71%)였던 plausible-dismissal 경계 + evidence rcept 부착·CFS/OFS 폴백 경고·누적/당기 두 기준·회전일수 TTM·기준 항상 명시
+42. [[agenda-typed-status-audit-260615]] — 안건별 parse_status 확대는 "확대 불필요"(320사, 숫자+단위 안건만 위험) 결정 + 정관 단일library 추적 + 보수한도 단일library fallback(기업은행·한국금융지주). 진단 시 production 경로 우회 금지 교훈
