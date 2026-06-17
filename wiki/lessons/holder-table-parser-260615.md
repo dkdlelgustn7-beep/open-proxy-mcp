@@ -129,8 +129,9 @@ raw: [[260615_holder_table_census]] / 파서: `open_proxy_mcp/services/holder_ta
 ### 이름 클래스 보강 (2026-06-17) — 영문 길이 + ㈜ 기호
 두 가지 이름 매칭 결함을 _NAME 문자클래스/길이로 교정:
 1. **긴 영문 펀드명 잘림** — "Align Partners Capital Management Limited"(41자)가 상한 `{1,40}`
-   초과로 "A"에서 실패→한 칸 밀린 "lign…"에 매칭. **상한 80으로 확장**(여전히 휴리스틱이라
-   더 긴 이름은 잘릴 수 있으나 그땐 합≠헤드라인→`verified=False`로 포착).
+   초과로 "A"에서 실패→한 칸 밀린 "lign…"에 매칭. **상한 50**(실측 정상 이름 최장 46자
+   'HALO MICROELECTRONICS…CORPORATION', >50은 여러 행 병합 garbage 1건뿐 — 50이 실제 이름은
+   다 덮고 runaway는 억제. 80과 결과 동일). 더 긴 이름은 합≠헤드라인→`verified=False`로 포착.
 2. **㈜ 등 괄호친 CJK 기호 누락 (under-count 주범)** — "포스코홀딩스㈜"·"넷마블㈜"·"SK㈜"의
    `㈜`(U+321C)가 이름 클래스에 없어 **대형 보고자 행이 통째 매칭 실패** → self가 작은 특관으로
    밀려 합 ≪ 헤드라인. `㈀-㋿`(괄호친 CJK)·전각괄호 추가로 해결.
