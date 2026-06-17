@@ -21,14 +21,17 @@ tags: [treasury_share, parser, acode]
 실측(rcept 20260407002987): `ACQ_AMT` 1회=599,999,984,800(600억) / 우선주 블록은 일별
 취득가액총액만(695M·688M·710M…) ACODE 없이 존재. 일별 취득가액총액 64행 합 = **정확히 1,000억**.
 
-## Fix (회귀 안전 by construction)
-일별 취득가액총액(`…<금액> <위탁증권사> <고유번호 8자리>`)을 합산해, **ACODE 값보다 5%↑ 클 때만**
-override(복수 종류로 ACODE가 일부만 잡은 경우). 단일 종류면 일별합=ACODE라 가드에 안 걸려 무변.
-planned(ACODE)도 보통주만이라 합산 시 shortfall은 제거(기준 불일치 방지). `actual_amount_multi_type_summed`
-플래그 노출.
+## Fix — 보통주 vs 종류주식 2분류 (사용자 요구: 변종 네이밍 무시, 2분류면 충분)
+일별 행을 종류 라벨로 **보통주 / 종류주식(우선주·기타주식·RCPS 등 전부 통합)** 2분류 합산
+(`_common_other_split`/`_apply_common_other`). 결과에 `amount_common_krw`/`amount_preferred_krw`
+split 노출. ACODE(보통주만)가 총액을 누락하면(종류주식분 ≥1억) `actual_amount_krw`를
+보통+종류 합으로 보정 + `actual_amount_multi_type_summed`. planned는 보통주만이라 shortfall 제거.
 
-검증: 미래에셋증권 2026 600→**999.99억(summed)**. 삼성전자(보통주+우선주)·KB금융·미래에셋
-타 연도는 ACODE가 이미 정확해 **summed=None 무변**(회귀 0). 전체 82테스트 통과.
+**회귀 안전**: 종류주식분 < 1억(단주·단일종류)이면 미발동 → split 미노출·총액 불변. 취득/처분
+결과 양쪽 동일 적용. 렌더에 "결과 detail (종류별 집행)" 표 추가.
+
+검증: 미래에셋 2026 **총 1,000억 = 보통주 600 + 종류주식 400**(ACODE 600만 잡던 것 보정).
+삼성전자 보통주 71,743·종류 0(최근 보통주만), KB금융 종류 0, 현대차 단주 미발동. 전체 82통과.
 
 ## 전수조사 (KOSPI 200, 자사주 우선주블록 83사) — `260617_treasury_multitype_census`
 - **취득결과 undercount: 미래에셋증권 1건뿐** (600→1000억). 다른 82사는 ACODE가 이미 정확.
