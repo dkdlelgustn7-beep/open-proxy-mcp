@@ -35,6 +35,11 @@ related: [financial-metrics-precision-260612, financial-metrics-evidence-fsdiv-2
   (= account_nm 단독이면 절반이 오매칭). 같은 항목 account_nm은 지배순이익 **13종**·지배자본 **14종**
   으로 갈리지만 account_id는 1종으로 통일. 이 표준 귀속항목은 All 엔드포인트에서 account_id가
   **항상 존재**(0/39 결측) → id 매칭이 안전·충분.
+- **전수 + 이중 검증(260701)**: KOSPI200(시총상위 200사) 전수 — 평가가능 192사 전부 raw account_id
+  ground truth와 일치(불일치 0). 독립 소스(FnGuide계열 리서치터미널 export) 191사 대조 = 흑/적 부호
+  100%·크기 99%(TTM≠FY 감안). 라이브 FnGuide 정밀 3종(OCI 갭 극단 삼성생명·부호뒤집힘 삼성SDI·
+  비지배 74% HD현대) 전부 일치 — 가장 틀리기 쉬운 종목에서 검증. 삼성생명: 옛 버그값 총포괄지배
+  274,348억(12배) 대신 지배순익 23,028억으로 정정 확인.
 
 ## Trade-off
 
