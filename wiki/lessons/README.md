@@ -23,6 +23,7 @@ updated: 2026-06-21
 - [[dividend-source-of-truth-260609]] — 배당 출처맵 + 누적 차분, 51사 정합 100%
 - [[financial-metrics-precision-260612]] — 모델 hedge 역추적 → 412사 전수
 - [[financial-metrics-evidence-fsdiv-260615]] — plausible-dismissal 경계 + evidence/CFS 폴백
+- [[financial-metrics-account-id-260630]] — 순이익·ROE 오염(총포괄손익 오매칭) → account_id 매칭 + ROE 분모 지배자본 교정, 39사 구조검증
 - [[order-contracts-260613]] — 수주 tool 신설, 같은 공시도 관점 다르면 다른 tool
 - [[risk-events-pipeline-260611]] — 리스크 6종 통합 tool (I001+B001 채널)
 - [[treasury-multitype-result-260617]] — 자사주 복수종류 우선주 누락 보정
