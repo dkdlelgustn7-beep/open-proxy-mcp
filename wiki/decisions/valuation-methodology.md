@@ -142,3 +142,13 @@ EBITDA=None / 금융사 매출 None 정당처리 / KRX ISU_CD 단축코드 조�
 
 **v1에서 드랍(→ v1.1)**: RIM(적정가 오해 소지 최대; 남긴다면 "시장 내재 ROE" 주석만)·EV/EBITDA(D&A 갭)·PSR(신호 약·금융 난센스)·FCF수익률(캡티브·capex 노이즈).
 **v1.1**: peer 상대순위·품질블록·유동성 게이트·EV/EBIT·분기 밴드 + 위 드랍분(정상화·섹터게이팅 후).
+
+### 구현 + 2R 패널 검증 결과 (260701, `services/valuation.py`)
+KOSPI200 전수(200종목·크래시 0·313초) + 4인 패널 2라운드. **CONFIRM**: 지배순이익 account_id·TTM=FY+1Q차분·
+BPS=지배자본÷유통합계·DPS=alotMatter·KRX 시총·섹터게이팅·N/M·자본잠식 — 공식정합 100%, 적자 가드 bijection(per_ok=흑자수).
+**적용된 P1/P2 수정**: ① eps_ttm 분모=보통주 유통(합계 아님, 스펙 P1) ② 결측 EPS를 '적자' 오표기 금지 ③ KRX 상장주식수
+sanity(유통>상장×3=파싱오류 무효화, LS에코 ×1e6 차단) ④ 우선주 총시총 접두매칭 오합산 → v1 보통주만(정식합산 v1.1)
+⑤ price=None 크래시 가드 ⑥ 극단배수(PBR>100·PER>500) plausibility 경고(두산밥캣 단위오독 방어).
+**v1.1 잔여(근본원인 조사)**: 두산밥캣 acntAll 금액 ~1000× 과소(단위/row 오독)·지배자본 미파싱 5사(카카오뱅크·케이뱅크·
+케이씨텍·코스모신소재·JW중외제약)·은행 sector 오분류(revenue None 휴리스틱)·TTM 분기 하드코딩(반기/3Q 롤링·OFS 폴백).
+**미완**: MCP tool 등록·자기 5년 밴드·PIT 시계열.
