@@ -182,6 +182,15 @@ MCP tool 등록 전 엣지케이스 crash-test가 2개 실버그 적발:
   안내) ③ 재무없음=`no_financials`로 조기 차단. **우선주(005935 등)는 마스터가 보통주 코드만
   보유해 not_found — 오매핑 없음**(+"보통주로 조회" 안내). crash-test 11케이스 크래시 0 재확인.
 
+### PER·PBR 데이터 포인트 전수조사 (260705, 에이전트 2 실측)
+
+EPS FY0/TTM 비대칭의 근본 해결을 위해 보통주·우선주 전 데이터 포인트를 실측 전수조사 —
+상세 = [[per-pbr-data-points]]. 핵심 판정: ① 가중평균주식수 직접 취득 불가(전 endpoint 0건)
+② **TTM EPS를 공시 EPS끼리 조립 가능**(분기 `thstrm_add_amount`·`frmtrm_add_amount` — FY0·TTM
+모두 공시 가중평균 기준으로 대칭화, 채택 예정) ③ MRQ 주식수는 KRX LIST_SHRS만(DART 분기 불가)
+④ 우선주 유형은 KIND_STKCERT_TP_NM 4값(종류주권 포함 — QA 미분류 12건 원인) ⑤ 우선주 종별
+시세=KRX 가능, DART는 합산 1행.
+
 ### 등록 전 7-에이전트 다각 검증 (260705)
 
 use-case별 에이전트 7개(대형제조·금융·통화환산·지주NCI·부실스케일·엣지식별·독립산식감사) 병렬 배치
