@@ -53,6 +53,7 @@ updated: 2026-06-21
 - [[parser-precision-260508]] — 가정 vs 실측, source 한계 vs parser 한계 분리
 - [[tool-coverage-audit-260612]] — 커버리지 2층위(파싱 성공률 vs 내용 정확도), baseline 없는 툴은 죽어도 모른다
 - [[topdown-screening-feasibility-260617]] — 스크리닝 타당성(정보 충분, 막힌 건 효율뿐)
+- [[aggregate-denominator-pairing-260706]] — 시장/섹터 집계는 지표별 독립 분모(cap) 페어링 필수, "검증됨"은 새 지표 추가 후까지 보장 안 함
 
 ## ⑤ 인프라·아키텍처 원칙
 - [[enrichment-as-infrastructure]] — facts/risk/citation = 검증 가능한 응답 인프라
