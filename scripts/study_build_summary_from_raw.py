@@ -144,8 +144,16 @@ SPECS = {
     },
     "cash_and_equivalents": {
         "sj_divs": ["BS"],
-        "id_equals": ["ifrs-full_CashAndCashEquivalents"],
-        "name_contains": ["현금및현금성자산", "현금 및 현금성자산"],
+        "id_equals": [
+            "ifrs-full_CashAndCashEquivalents",
+            "dart_CashAndDuefromBanks",
+        ],
+        "name_contains": [
+            "현금및현금성자산",
+            "현금 및 현금성자산",
+            "현금 및 예치금",
+            "현금 및 상각후원가측정예치금",
+        ],
     },
     "cfo": {
         "sj_divs": ["CF"],
@@ -168,11 +176,29 @@ SPECS = {
     },
     "dividends_paid": {
         "sj_divs": ["CF"],
-        "name_contains": ["배당금의지급", "배당금지급", "배당금 지급"],
+        "id_contains": [
+            "DividendsPaidClassifiedAsFinancingActivities",
+        ],
+        "name_contains": [
+            "배당금의지급",
+            "배당금지급",
+            "배당금 지급",
+            "현금배당",
+        ],
     },
     "fx_effect": {
         "sj_divs": ["CF"],
-        "name_contains": ["환율변동효과", "환율 변동 효과"],
+        "id_equals": [
+            "ifrs-full_EffectOfExchangeRateChangesOnCashAndCashEquivalents",
+        ],
+        "name_contains": [
+            "환율변동효과",
+            "환율 변동 효과",
+            "환율변동으로 인한 현금흐름",
+            "외화환산으로 인한 현금의 변동",
+            "외화표시 현금 및 현금성자산에 대한 환율변동효과",
+            "외화표시 현금및현금성자산에 대한 환율변동효과",
+        ],
     },
 }
 

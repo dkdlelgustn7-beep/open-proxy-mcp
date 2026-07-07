@@ -1,20 +1,14 @@
 import asyncio
 import os
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 
 from open_proxy_mcp.dart.client import get_dart_client, DartClientError
 
 
-TARGETS = [
-    "삼성전자",
-    "SK하이닉스",
-    "현대차",
-    "기아",
-    "LG전자",
-]
-
+INPUT_FILE = Path("input/targets_20.csv")
 BSNS_YEAR = "2024"
 REPRT_CODE = "11011"   # 사업보고서
 FS_DIV = "CFS"         # 연결
@@ -43,6 +37,7 @@ async def fetch_one(client, company):
             row["company_input"] = company
             row["resolved_corp_name"] = corp.get("corp_name")
             row["stock_code"] = corp.get("stock_code")
+            row["corp_code_resolved"] = corp.get("corp_code")
 
         return rows, {
             "company_input": company,
@@ -73,15 +68,30 @@ async def main():
     if not os.getenv("OPENDART_API_KEY"):
         raise RuntimeError("OPENDART_API_KEY 환경변수가 없습니다.")
 
+    if not INPUT_FILE.exists():
+        raise FileNotFoundError(f"{INPUT_FILE} 파일이 없습니다.")
+
     os.makedirs("output", exist_ok=True)
+
+    targets_df = pd.read_csv(INPUT_FILE)
+    targets = (
+        targets_df["company"]
+        .dropna()
+        .astype(str)
+        .str.strip()
+        .loc[lambda s: s != ""]
+        .tolist()
+    )
+
+    print(f"targets: {len(targets)}")
 
     client = get_dart_client()
 
     all_rows = []
     logs = []
 
-    for company in TARGETS:
-        print(f"fetching: {company}")
+    for i, company in enumerate(targets, 1):
+        print(f"[{i}/{len(targets)}] fetching: {company}")
         rows, log = await fetch_one(client, company)
         all_rows.extend(rows)
         logs.append(log)
@@ -96,6 +106,7 @@ async def main():
     with pd.ExcelWriter(out_xlsx, engine="openpyxl") as writer:
         raw_df.to_excel(writer, sheet_name="raw_fnlttSinglAcntAll", index=False)
         log_df.to_excel(writer, sheet_name="fetch_log", index=False)
+        targets_df.to_excel(writer, sheet_name="targets", index=False)
 
     print(f"saved: {out_xlsx}")
     print(f"raw rows: {len(raw_df)}")
