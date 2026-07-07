@@ -281,7 +281,103 @@ def build_summary(raw):
         }
         summaries.append(summary)
 
-    return pd.DataFrame(summaries), pd.DataFrame(match_logs)
+    summary_df = pd.DataFrame(summaries)
+    match_log_df = pd.DataFrame(match_logs)
+
+    def metric_matched(company, metric):
+        sub = match_log_df[
+            (match_log_df["company_input"] == company)
+            & (match_log_df["metric"] == metric)
+        ]
+        if sub.empty:
+            return False
+        return bool(sub["matched"].iloc[0])
+
+    def make_quality_flags(row):
+        flags = []
+        company = row.get("company_input")
+        company_text = f"{row.get('company_input', '')} {row.get('resolved_corp_name', '')}"
+
+        financial_keywords = (
+            "금융",
+            "은행",
+            "보험",
+            "증권",
+            "생명",
+            "해상",
+            "손해보험",
+            "화재",
+            "카드",
+            "캐피탈",
+            "신한지주",
+            "하나금융",
+            "우리금융",
+            "KB금융",
+            "메리츠금융",
+            "기업은행",
+            "카카오뱅크",
+        )
+        if any(k in company_text for k in financial_keywords):
+            flags.append("CHECK_FINANCIAL_INDUSTRY")
+
+        if pd.isna(row.get("revenue_krw")):
+            flags.append("MISSING_REVENUE")
+
+        if pd.isna(row.get("operating_profit_krw")):
+            flags.append("MISSING_OPERATING_PROFIT")
+
+        if (
+            not metric_matched(company, "net_income_parent")
+            and metric_matched(company, "net_income_total")
+        ):
+            flags.append("USED_TOTAL_NET_INCOME")
+
+        if pd.isna(row.get("net_income_krw")):
+            flags.append("MISSING_NET_INCOME")
+
+        if pd.isna(row.get("cash_and_equivalents_krw")):
+            flags.append("MISSING_CASH")
+
+        if pd.isna(row.get("cfo_krw")):
+            flags.append("MISSING_CFO")
+
+        if pd.isna(row.get("cfi_krw")):
+            flags.append("MISSING_CFI")
+
+        if pd.isna(row.get("cff_krw")):
+            flags.append("MISSING_CFF")
+
+        if pd.isna(row.get("capex_cash_out_krw")):
+            flags.append("MISSING_CAPEX")
+
+        if pd.isna(row.get("dividend_cash_out_krw")):
+            flags.append("DIVIDEND_NOT_FOUND")
+
+        fcf = row.get("fcf_before_div_krw")
+        if pd.notna(fcf) and fcf < 0:
+            flags.append("NEGATIVE_FCF_BEFORE_DIV")
+
+        payout = row.get("payout_ratio_pct")
+        if pd.notna(payout) and payout >= 80:
+            flags.append("HIGH_PAYOUT_RATIO")
+
+        return "|".join(flags) if flags else "OK"
+
+    summary_df["quality_flags"] = summary_df.apply(make_quality_flags, axis=1)
+    summary_df["needs_review"] = summary_df["quality_flags"] != "OK"
+
+    front_cols = [
+        "company_input",
+        "resolved_corp_name",
+        "stock_code",
+        "corp_code",
+        "quality_flags",
+        "needs_review",
+    ]
+    rest_cols = [c for c in summary_df.columns if c not in front_cols]
+    summary_df = summary_df[front_cols + rest_cols]
+
+    return summary_df, match_log_df
 
 
 def main():
