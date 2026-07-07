@@ -128,3 +128,9 @@ data/usage/
 
 # 로컬 전용 wiki (PUBLIC 리포에 공개하지 않을 운영 문서 — 커밋 금지)
 wiki/_local/
+
+# study outputs
+output/
+*.xlsx
+*.csv
+.env
