@@ -186,6 +186,71 @@ SPECS = {
             "현금배당",
         ],
     },
+    "cash_beginning_cf": {
+        "sj_divs": ["CF"],
+        "id_equals": ["dart_CashAndCashEquivalentsAtBeginningOfPeriodCf"],
+        "name_contains": [
+            "기초 현금 및 현금성자산",
+            "기초의 현금 및 현금성자산",
+            "기초 현금및현금성자산",
+        ],
+    },
+    "cash_ending_cf": {
+        "sj_divs": ["CF"],
+        "id_equals": ["ifrs-full_CashAndCashEquivalents"],
+        "name_contains": [
+            "기말 현금 및 현금성자산",
+            "기말의 현금 및 현금성자산",
+            "기말 현금및현금성자산",
+        ],
+    },
+    "short_term_borrowings_net": {
+        "sj_divs": ["CF"],
+        "id_contains": [
+            "IncreaseDecreaseInCurrentBorrowings",
+            "IncreaseDecreaseInShortTermBorrowings",
+        ],
+        "name_contains": [
+            "단기차입금의 순증감",
+            "단기차입금 순증감",
+            "단기차입금의 증가",
+            "단기차입금의 감소",
+        ],
+    },
+    "borrowings_proceeds": {
+        "sj_divs": ["CF"],
+        "id_contains": [
+            "ProceedsFromBorrowingsClassifiedAsFinancingActivities",
+            "ProceedsFromLongTermBorrowings",
+            "ProceedsFromShortTermBorrowings",
+            "ProceedsFromBonds",
+        ],
+        "name_contains": [
+            "사채 및 장기차입금의 차입",
+            "차입금의 차입",
+            "차입금의 증가",
+            "장기차입금의 차입",
+            "사채의 발행",
+            "사채 발행",
+        ],
+    },
+    "borrowings_repayments": {
+        "sj_divs": ["CF"],
+        "id_contains": [
+            "RepaymentsOfBorrowingsClassifiedAsFinancingActivities",
+            "RepaymentsOfLongTermBorrowings",
+            "RepaymentsOfShortTermBorrowings",
+            "RepaymentsOfBonds",
+        ],
+        "name_contains": [
+            "사채 및 장기차입금의 상환",
+            "차입금의 상환",
+            "차입금의 감소",
+            "장기차입금의 상환",
+            "사채의 상환",
+            "사채 상환",
+        ],
+    },
     "fx_effect": {
         "sj_divs": ["CF"],
         "id_equals": [
@@ -236,6 +301,13 @@ def build_summary(raw):
         dividends_raw = matched.get("dividends_paid")
         dividend_cash_out = abs(dividends_raw) if dividends_raw is not None else None
 
+        borrowings_repayments_raw = matched.get("borrowings_repayments")
+        borrowings_repayments_cash_out = (
+            abs(borrowings_repayments_raw)
+            if borrowings_repayments_raw is not None
+            else None
+        )
+
         cfo = matched.get("cfo")
 
         fcf_before_div = None
@@ -274,6 +346,13 @@ def build_summary(raw):
             "capex_cash_out_krw": capex_cash_out,
             "dividends_paid_raw_krw": dividends_raw,
             "dividend_cash_out_krw": dividend_cash_out,
+
+            "cash_beginning_cf_krw": matched.get("cash_beginning_cf"),
+            "cash_ending_cf_krw": matched.get("cash_ending_cf"),
+            "short_term_borrowings_net_krw": matched.get("short_term_borrowings_net"),
+            "borrowings_proceeds_krw": matched.get("borrowings_proceeds"),
+            "borrowings_repayments_raw_krw": borrowings_repayments_raw,
+            "borrowings_repayments_cash_out_krw": borrowings_repayments_cash_out,
 
             "fcf_before_div_krw": fcf_before_div,
             "fcf_after_div_krw": fcf_after_div,
