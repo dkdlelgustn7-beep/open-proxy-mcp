@@ -1,0 +1,269 @@
+{
+  "revenue": {
+    "sj_divs": [
+      "IS",
+      "CIS"
+    ],
+    "id_equals": [
+      "ifrs-full_Revenue",
+      "ifrs-full_RevenueFromContractsWithCustomers"
+    ],
+    "name_exact": [
+      "매출액",
+      "수익(매출액)",
+      "영업수익"
+    ],
+    "name_contains": [
+      "매출액",
+      "수익(매출액)",
+      "영업수익"
+    ]
+  },
+  "operating_profit": {
+    "sj_divs": [
+      "IS",
+      "CIS"
+    ],
+    "id_contains": [
+      "OperatingIncomeLoss"
+    ],
+    "name_contains": [
+      "영업이익",
+      "영업이익(손실)"
+    ]
+  },
+  "net_income_parent": {
+    "sj_divs": [
+      "IS",
+      "CIS"
+    ],
+    "id_contains": [
+      "ProfitLossAttributableToOwnersOfParent"
+    ],
+    "name_contains": [
+      "지배기업소유주지분",
+      "지배주주지분순이익"
+    ]
+  },
+  "net_income_total": {
+    "sj_divs": [
+      "IS",
+      "CIS"
+    ],
+    "id_equals": [
+      "ifrs-full_ProfitLoss"
+    ],
+    "name_contains": [
+      "당기순이익",
+      "당기순이익(손실)",
+      "분기순이익",
+      "반기순이익"
+    ]
+  },
+  "total_assets": {
+    "sj_divs": [
+      "BS"
+    ],
+    "id_equals": [
+      "ifrs-full_Assets"
+    ],
+    "name_exact": [
+      "자산총계"
+    ]
+  },
+  "total_liabilities": {
+    "sj_divs": [
+      "BS"
+    ],
+    "id_equals": [
+      "ifrs-full_Liabilities"
+    ],
+    "name_exact": [
+      "부채총계"
+    ]
+  },
+  "total_equity": {
+    "sj_divs": [
+      "BS"
+    ],
+    "id_equals": [
+      "ifrs-full_Equity"
+    ],
+    "name_exact": [
+      "자본총계"
+    ]
+  },
+  "cash_and_equivalents": {
+    "sj_divs": [
+      "BS"
+    ],
+    "id_equals": [
+      "ifrs-full_CashAndCashEquivalents",
+      "dart_CashAndDuefromBanks"
+    ],
+    "name_contains": [
+      "현금및현금성자산",
+      "현금 및 현금성자산",
+      "현금 및 예치금",
+      "현금 및 상각후원가측정예치금"
+    ]
+  },
+  "cfo": {
+    "sj_divs": [
+      "CF"
+    ],
+    "id_contains": [
+      "CashFlowsFromUsedInOperatingActivities"
+    ],
+    "name_contains": [
+      "영업활동현금흐름",
+      "영업활동으로인한현금흐름",
+      "영업활동으로부터의현금흐름"
+    ]
+  },
+  "cfi": {
+    "sj_divs": [
+      "CF"
+    ],
+    "id_contains": [
+      "CashFlowsFromUsedInInvestingActivities"
+    ],
+    "name_contains": [
+      "투자활동현금흐름",
+      "투자활동으로인한현금흐름",
+      "투자활동으로부터의현금흐름"
+    ]
+  },
+  "cff": {
+    "sj_divs": [
+      "CF"
+    ],
+    "id_contains": [
+      "CashFlowsFromUsedInFinancingActivities"
+    ],
+    "name_contains": [
+      "재무활동현금흐름",
+      "재무활동으로인한현금흐름",
+      "재무활동으로부터의현금흐름"
+    ]
+  },
+  "capex": {
+    "sj_divs": [
+      "CF"
+    ],
+    "name_contains": [
+      "유형자산의취득",
+      "유형자산취득",
+      "유형자산의 취득"
+    ]
+  },
+  "dividends_paid": {
+    "sj_divs": [
+      "CF"
+    ],
+    "id_contains": [
+      "DividendsPaidClassifiedAsFinancingActivities"
+    ],
+    "name_contains": [
+      "배당금의지급",
+      "배당금지급",
+      "배당금 지급",
+      "현금배당"
+    ]
+  },
+  "cash_beginning_cf": {
+    "sj_divs": [
+      "CF"
+    ],
+    "id_equals": [
+      "dart_CashAndCashEquivalentsAtBeginningOfPeriodCf"
+    ],
+    "name_contains": [
+      "기초 현금 및 현금성자산",
+      "기초의 현금 및 현금성자산",
+      "기초 현금및현금성자산"
+    ]
+  },
+  "cash_ending_cf": {
+    "sj_divs": [
+      "CF"
+    ],
+    "id_equals": [
+      "ifrs-full_CashAndCashEquivalents"
+    ],
+    "name_contains": [
+      "기말 현금 및 현금성자산",
+      "기말의 현금 및 현금성자산",
+      "기말 현금및현금성자산"
+    ]
+  },
+  "short_term_borrowings_net": {
+    "sj_divs": [
+      "CF"
+    ],
+    "id_contains": [
+      "IncreaseDecreaseInCurrentBorrowings",
+      "IncreaseDecreaseInShortTermBorrowings"
+    ],
+    "name_contains": [
+      "단기차입금의 순증감",
+      "단기차입금 순증감",
+      "단기차입금의 증가",
+      "단기차입금의 감소"
+    ]
+  },
+  "borrowings_proceeds": {
+    "sj_divs": [
+      "CF"
+    ],
+    "id_contains": [
+      "ProceedsFromBorrowingsClassifiedAsFinancingActivities",
+      "ProceedsFromLongTermBorrowings",
+      "ProceedsFromShortTermBorrowings",
+      "ProceedsFromBonds"
+    ],
+    "name_contains": [
+      "사채 및 장기차입금의 차입",
+      "차입금의 차입",
+      "차입금의 증가",
+      "장기차입금의 차입",
+      "사채의 발행",
+      "사채 발행"
+    ]
+  },
+  "borrowings_repayments": {
+    "sj_divs": [
+      "CF"
+    ],
+    "id_contains": [
+      "RepaymentsOfBorrowingsClassifiedAsFinancingActivities",
+      "RepaymentsOfLongTermBorrowings",
+      "RepaymentsOfShortTermBorrowings",
+      "RepaymentsOfBonds"
+    ],
+    "name_contains": [
+      "사채 및 장기차입금의 상환",
+      "차입금의 상환",
+      "차입금의 감소",
+      "장기차입금의 상환",
+      "사채의 상환",
+      "사채 상환"
+    ]
+  },
+  "fx_effect": {
+    "sj_divs": [
+      "CF"
+    ],
+    "id_equals": [
+      "ifrs-full_EffectOfExchangeRateChangesOnCashAndCashEquivalents"
+    ],
+    "name_contains": [
+      "환율변동효과",
+      "환율 변동 효과",
+      "환율변동으로 인한 현금흐름",
+      "외화환산으로 인한 현금의 변동",
+      "외화표시 현금 및 현금성자산에 대한 환율변동효과",
+      "외화표시 현금및현금성자산에 대한 환율변동효과"
+    ]
+  }
+}
