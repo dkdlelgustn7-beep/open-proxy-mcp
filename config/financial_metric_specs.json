@@ -265,5 +265,37 @@
       "외화표시 현금 및 현금성자산에 대한 환율변동효과",
       "외화표시 현금및현금성자산에 대한 환율변동효과"
     ]
+  },
+  "finance_income": {
+    "sj_divs": [
+      "IS",
+      "CIS"
+    ],
+    "id_equals": [
+      "ifrs-full_FinanceIncome"
+    ],
+    "name_exact": [
+      "금융수익"
+    ],
+    "name_contains": [
+      "금융수익"
+    ]
+  },
+  "finance_costs": {
+    "sj_divs": [
+      "IS",
+      "CIS"
+    ],
+    "id_equals": [
+      "ifrs-full_FinanceCosts"
+    ],
+    "name_exact": [
+      "금융원가",
+      "금융비용"
+    ],
+    "name_contains": [
+      "금융원가",
+      "금융비용"
+    ]
   }
 }

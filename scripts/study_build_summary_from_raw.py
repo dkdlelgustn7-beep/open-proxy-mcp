@@ -390,6 +390,36 @@ def build_summary(raw):
             "fcf_after_div_krw": fcf_after_div,
             "payout_ratio_pct": payout_ratio_pct,
         }
+        explicit_summary_metrics = {
+            "revenue",
+            "operating_profit",
+            "net_income_parent",
+            "net_income_total",
+            "total_assets",
+            "total_liabilities",
+            "total_equity",
+            "cash_and_equivalents",
+            "cfo",
+            "cfi",
+            "cff",
+            "fx_effect",
+            "capex",
+            "dividends_paid",
+            "cash_beginning_cf",
+            "cash_ending_cf",
+            "short_term_borrowings_net",
+            "borrowings_proceeds",
+            "borrowings_repayments",
+        }
+
+        for metric, value in matched.items():
+            if metric in explicit_summary_metrics:
+                continue
+
+            col = f"{metric}_krw"
+            if col not in summary:
+                summary[col] = value
+
         summaries.append(summary)
 
     summary_df = pd.DataFrame(summaries)
