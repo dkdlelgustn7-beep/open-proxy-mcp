@@ -109,8 +109,20 @@ def row_meta(row):
 SPECS = {
     "revenue": {
         "sj_divs": ["IS", "CIS"],
-        "id_contains": ["Revenue"],
-        "name_contains": ["매출액", "수익(매출액)", "영업수익"],
+        "id_equals": [
+            "ifrs-full_Revenue",
+            "ifrs-full_RevenueFromContractsWithCustomers",
+        ],
+        "name_exact": [
+            "매출액",
+            "수익(매출액)",
+            "영업수익",
+        ],
+        "name_contains": [
+            "매출액",
+            "수익(매출액)",
+            "영업수익",
+        ],
     },
     "operating_profit": {
         "sj_divs": ["IS", "CIS"],
@@ -270,11 +282,25 @@ SPECS = {
 
 def build_summary(raw):
     group_cols = ["company_input", "resolved_corp_name", "stock_code", "corp_code"]
+
+    period_cols = ["bsns_year_input", "reprt_code_input", "fs_div_input"]
+    group_cols += [c for c in period_cols if c in raw.columns]
     summaries = []
     match_logs = []
 
     for keys, g in raw.groupby(group_cols, dropna=False):
-        company_input, resolved_name, stock_code, corp_code = keys
+        if not isinstance(keys, tuple):
+            keys = (keys,)
+
+        key_map = dict(zip(group_cols, keys))
+
+        company_input = key_map.get("company_input")
+        resolved_name = key_map.get("resolved_corp_name")
+        stock_code = key_map.get("stock_code")
+        corp_code = key_map.get("corp_code")
+        bsns_year_input = key_map.get("bsns_year_input", "")
+        reprt_code_input = key_map.get("reprt_code_input", "")
+        fs_div_input = key_map.get("fs_div_input", "")
 
         matched = {}
         for key, spec in SPECS.items():
@@ -287,6 +313,9 @@ def build_summary(raw):
                 "resolved_corp_name": resolved_name,
                 "stock_code": stock_code,
                 "corp_code": corp_code,
+                "bsns_year_input": bsns_year_input,
+                "reprt_code_input": reprt_code_input,
+                "fs_div_input": fs_div_input,
                 "metric": key,
                 **meta,
             })
@@ -327,6 +356,9 @@ def build_summary(raw):
             "resolved_corp_name": resolved_name,
             "stock_code": stock_code,
             "corp_code": corp_code,
+            "bsns_year_input": bsns_year_input,
+            "reprt_code_input": reprt_code_input,
+            "fs_div_input": fs_div_input,
 
             "revenue_krw": matched.get("revenue"),
             "operating_profit_krw": matched.get("operating_profit"),
@@ -450,9 +482,13 @@ def build_summary(raw):
         "resolved_corp_name",
         "stock_code",
         "corp_code",
+        "bsns_year_input",
+        "reprt_code_input",
+        "fs_div_input",
         "quality_flags",
         "needs_review",
     ]
+    front_cols = [c for c in front_cols if c in summary_df.columns]
     rest_cols = [c for c in summary_df.columns if c not in front_cols]
     summary_df = summary_df[front_cols + rest_cols]
 
@@ -460,9 +496,12 @@ def build_summary(raw):
 
 
 def main():
-    raw_files = sorted(OUTPUT_DIR.glob("financial_raw_batch_*.xlsx"))
+    raw_files = sorted(
+        list(OUTPUT_DIR.glob("financial_raw_batch_*.xlsx"))
+        + list(OUTPUT_DIR.glob("financial_raw_panel_*.xlsx"))
+    )
     if not raw_files:
-        raise FileNotFoundError("output/financial_raw_batch_*.xlsx 파일이 없습니다.")
+        raise FileNotFoundError("output/financial_raw_batch_*.xlsx 또는 financial_raw_panel_*.xlsx 파일이 없습니다.")
 
     latest = raw_files[-1]
     print(f"input: {latest}")
